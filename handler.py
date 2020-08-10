@@ -16,11 +16,36 @@ def start_new_game(update, context):
   user_data = context.user_data
   user_data['players'] = []
 
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
   update.message.reply_text(
-  	'`Please enter 1st player name or id number:`',
+    "`Please select if this game will be recorded by SMCRM:\nDo note that only games played by 4 registered SMCRM players can be recorded`",
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SET_RECORDED_GAME
+
+def set_recorded_game(update, context):
+  user_data = context.user_data
+  user_data['recorded'] = True
+
+  update.message.reply_text(
+    '`Please enter 1st player name or id number:`',
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
+
+def set_not_recorded_Game(update, context):
+  user_data = context.user_data
+  user_data['recorded'] = False
+
+  update.message.reply_text(
+    '`Please enter 1st player name:`',
+    parse_mode=ParseMode.MARKDOWN_V2)
+
+  return SET_PLAYER_NAME
+
 
 def set_player_by_name(update, context):
   user_data = context.user_data
@@ -28,11 +53,15 @@ def set_player_by_name(update, context):
   name = func.handle_name(text)
   players = user_data['players']
 
-  player_info = db.get_player_by_name(name)
-  if player_info is None:
-    update.message.reply_text("`Please enter a valid name`", 
-      parse_mode=ParseMode.MARKDOWN_V2)
-    return SET_PLAYER_NAME
+  if user_data['recorded']:
+    player_info = db.get_player_by_name(name)
+    if player_info is None:
+      update.message.reply_text("`Please enter a valid name`", 
+        parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
+  else:
+    player_info = {'id': 0, 'name': name}
+
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
     	parse_mode=ParseMode.MARKDOWN_V2)
@@ -67,11 +96,14 @@ def set_player_by_id(update, context):
   text = update.message.text
   players = user_data['players']
 
-  player_info = db.get_player_by_id(text)
-  if player_info is None:
-    update.message.reply_text("`Please enter a valid id`",
-      parse_mode=ParseMode.MARKDOWN_V2)
-    return SET_PLAYER_NAME
+  if user_data['recorded']:
+    player_info = db.get_player_by_id(text)
+    if player_info is None:
+      update.message.reply_text("`Please enter a valid id`",
+        parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
+  else:
+    player_info = {'id': 0, 'name': func.handle_name(text)}
 
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
@@ -265,9 +297,13 @@ def start_game(update, context):
 
   player_names = func.get_all_player_name(user_data['players'])
 
-  gid, start_date = db.set_new_game(user_data)
-  user_data['id'] = gid
-  user_data['date'] = start_date
+  if user_data['recorded']:
+    gid, start_date = db.set_new_game(user_data)
+    user_data['id'] = gid
+    user_data['date'] = start_date
+  else:
+    user_data['id'] = 0
+    user_data['date'] = datetime.now().strftime("%d-%m-%Y")
 
   user_data['hands'] = []
   user_data['penalty'] = [0,0,0,0]
@@ -550,7 +586,9 @@ def save_hand(update, context):
   if new_hand['outcome'] != 'chombo':
     func.process_hand(new_hand)
 
-  db.set_new_hand(new_hand, user_data['id'], func.get_all_player_id(user_data['players']))
+  if user_data['recorded']:
+    db.set_new_hand(new_hand, user_data['id'], func.get_all_player_id(user_data['players']))
+
   user_data['hands'].append(new_hand)
   del user_data['new hand']
 
@@ -641,7 +679,8 @@ def save_complete_game(update, context):
 
   func.process_game(user_data)
 
-  db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
+  if user_data['recorded']:
+    db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
 
   update.message.reply_text("`Game have been completed.`", parse_mode=ParseMode.MARKDOWN_V2)
 

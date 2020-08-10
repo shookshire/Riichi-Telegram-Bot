@@ -47,6 +47,10 @@ def main():
     entry_points=[CommandHandler('start', handler.start_new_game)],
 
     states={
+      SET_RECORDED_GAME: [
+        MessageHandler(Filters.regex('^Yes$'), handler.set_recorded_game),
+        MessageHandler(Filters.regex('^No$'), handler.set_not_recorded_Game)
+      ],
       SET_PLAYER_NAME: [
         MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
                        handler.set_player_by_name),
