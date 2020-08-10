@@ -10,7 +10,7 @@
 3. Connect to and store game information to SMCRM db
 4. Allow for non SMCRM members to use the app without game storing functionalities
 
-To be implemented:
+To be implemented in future updates:
 1. Error handling
 2. Logging
 ```
