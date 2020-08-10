@@ -97,15 +97,3 @@ CREATE TABLE IndividualHand (
 	FOREIGN key (hid) references Hand(hid) on delete cascade,
 	FOREIGN key (pid) references Players(pid) on delete cascade
 );
-
-insert into Players (pname) values ('Nlyzmq');
-insert into Players (pname) values ('Zmmx');
-insert into Players (pname) values ('Jzd');
-insert into Players (pname) values ('Bababa');
-insert into Players (pname) values ('Fits');
-insert into Players (pname) values ('Rub');
-insert into Players (pname) values ('Burn');
-insert into Players (pname) values ('Under World');
-insert into Players (pname) values ('Aspergers');
-insert into Players (pname) values ('Luck Sack');
-insert into Players (pname) values ('Suay Sack');
