@@ -57,6 +57,10 @@ def main():
         MessageHandler(Filters.regex('^(Re-enter Names|Proceed to Aka settings)$'),
                         handler.confirm_player_name)
       ],
+      SET_INITIAL_VALUE: [
+        MessageHandler(Filters.regex('^(250|300)$'),
+                                handler.set_initial_value)
+      ],
       SET_AKA: [
         MessageHandler(Filters.regex('^(Aka-Ari|Aka-Nashi)$'),
                                 handler.set_aka)

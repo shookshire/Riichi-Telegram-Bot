@@ -115,6 +115,22 @@ def confirm_player_name(update, context):
 
     return SET_PLAYER_NAME
 
+  reply_keyboard = [['250', '300']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    "`Please select the initial value:`",
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SET_INITIAL_VALUE
+
+def set_initial_value(update, context):
+  user_data = context.user_data
+  text = update.message.text
+
+  user_data['initial value'] = int(text)
+
   reply_keyboard = [['Aka-Ari', 'Aka-Nashi']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -124,6 +140,7 @@ def confirm_player_name(update, context):
     reply_markup=markup)
 
   return SET_AKA
+
 
 def set_aka(update, context):
   text = update.message.text
@@ -255,7 +272,7 @@ def start_game(update, context):
   user_data['hands'] = []
   user_data['penalty'] = [0,0,0,0]
 
-  return return_next_command(update, func.print_game_settings_info(user_data) + func.print_current_game_state(user_data['hands'], player_names) + '`\n\nPlease select an option:`')
+  return return_next_command(update, func.print_game_settings_info(user_data) + func.print_current_game_state(user_data['hands'], player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
 
 def discard_game_settings(update, context):
   user_data = context.user_data
@@ -266,7 +283,7 @@ def discard_game_settings(update, context):
 
 def add_new_hand(update, context):
   user_data = context.user_data
-  user_data['new hand'] = func.create_new_hand(user_data['hands'])
+  user_data['new hand'] = func.create_new_hand(user_data['hands'], user_data['initial value'])
 
   reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Chombo']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -519,9 +536,11 @@ def set_chombo_done(update, context):
 
 def discard_hand(update, context):
   user_data = context.user_data
+  hands = user_data['hands']
+  player_names = func.get_all_player_name(user_data['players'])
   del user_data['new hand']
 
-  return return_next_command(update, '`Hand have been discarded\n\n`' + func.print_current_game_state(hands, player_names) +'`Please select an option:`')
+  return return_next_command(update, '`Hand have been discarded\n\n`' + func.print_current_game_state(hands, player_names, user_data['initial value']) +'`Please select an option:`')
 
 def save_hand(update, context):
   user_data = context.user_data
@@ -564,7 +583,7 @@ def confirm_game_end(update, context):
 
 def return_to_next_command(update, context):
   return return_next_command(update, 
-    func.print_current_game_state(hands, player_names)
+    func.print_current_game_state(hands, player_names, user_data['initial value'])
     + '`\n\nPlease select an option:`')
 
 def select_have_penalty(update, context):
@@ -639,4 +658,4 @@ def delete_last_hand(update, context):
     db.delete_last_hand(user_data['id'], last_hand_num)
     hands.pop()
 
-  return return_next_command(update, func.print_current_game_state(hands, player_names) + '`\n\nPlease select an option:`')
+  return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')

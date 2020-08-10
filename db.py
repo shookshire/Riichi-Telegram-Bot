@@ -47,8 +47,8 @@ def get_player_by_id(pid):
 def set_new_game(game):
 	pid = func.get_all_player_id(game['players'])
 
-	sql = "INSERT INTO Game (start_time, p1_id, p2_id, p3_id, p4_id, aka, uma_p1, uma_p2, uma_p3, uma_p4, oka) VALUES"
-	sql += "(NOW(), {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}) returning gid, to_char(start_time, 'DD-MM-YYYY')".format(pid[0], pid[1], pid[2], pid[3], game['aka'], game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3], game['oka'])
+	sql = "INSERT INTO Game (start_time, initial_value, p1_id, p2_id, p3_id, p4_id, aka, uma_p1, uma_p2, uma_p3, uma_p4, oka) VALUES"
+	sql += "(NOW(), {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}) returning gid, to_char(start_time, 'DD-MM-YYYY')".format(game['initial value'], pid[0], pid[1], pid[2], pid[3], game['aka'], game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3], game['oka'])
 
 	conn = connect_db()
 	cur = conn.cursor()

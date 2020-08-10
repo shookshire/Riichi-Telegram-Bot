@@ -64,7 +64,7 @@ def process_hand(hand):
 		hand['value'] = score_change[hand['winner idx']]
 
 def process_game(game):
-	game['final score'] = game['hands'][-1]['final score'] if len(game['hands']) else [250, 250, 250, 250]
+	game['final score'] = game['hands'][-1]['final score'] if len(game['hands']) else [game['initial value']]*4
 	game['position'] = game['hands'][-1]['position'] if len(game['hands']) else [2.5,2.5,2.5,2.5]
 
 
@@ -95,7 +95,7 @@ def get_next_hand_wind_round_honba(prev_hand):
 
 	return wind, round_num, honba
 
-def create_new_hand(hands):
+def create_new_hand(hands, intial_value):
 	prev_hand = get_last_valid_hand(hands)
 
 	new_hand = {
@@ -111,8 +111,8 @@ def create_new_hand(hands):
 		'loser idx': '',
 		'tenpai': [False, False, False, False],
 		'riichi': [False, False, False, False],
-		'initial score': [250, 250, 250, 250],
-		'final score': [250, 250, 250, 250],
+		'initial score': [intial_value]*4,
+		'final score': [intial_value]*4,
 		'position': [2.5,2.5,2.5,2.5],
 		'chombo': [False, False, False, False],
 		'score change': [0,0,0,0],
@@ -343,9 +343,9 @@ def print_penalty(penalty, player_names):
 	return text
 
 
-def print_current_game_state(hands, player_names):
+def print_current_game_state(hands, player_names, intial_value):
 	if len(hands) == 0:
-		score = [250, 250, 250, 250]
+		score = [intial_value]*4
 		pool = 0
 		wind = 'E'
 		rnd = 1

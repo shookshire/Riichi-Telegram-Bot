@@ -32,7 +32,7 @@ CREATE TABLE Game (
 	gid 				SERIAL PRIMARY KEY,
 	start_time 	TIMESTAMP,
 	end_time 		TIMESTAMP,
-	gname 			VARCHAR(50),
+	initial_value	INTEGER,
 	status 			VARCHAR(20) NOT NULL default 'in progress',
 	p1_id 			INTEGER NOT NULL,
 	p2_id 			INTEGER NOT NULL,
