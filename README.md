@@ -4,7 +4,7 @@
 
 #### 1. Initialize Database
 
-###### Create a database named FDS and run the following command
+###### Create a database named riichi and run the following command
 
 ```sh
 cd ${repo_dir_location}/database/
