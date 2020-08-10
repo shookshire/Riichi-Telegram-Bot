@@ -32,6 +32,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+def error(update, context):
+  logger.warning('update "%s" caused error "%s"', update, context.error)
 
 def main():
   # Create the Updater and pass it your bot's token.
@@ -58,7 +60,7 @@ def main():
                        handler.set_player_by_id)
       ],
       CONFIRM_PLAYER_NAME: [
-        MessageHandler(Filters.regex('^(Re-enter Names|Proceed to Aka settings)$'),
+        MessageHandler(Filters.regex('^(Re-enter Names|Proceed)$'),
                         handler.confirm_player_name)
       ],
       SET_INITIAL_VALUE: [
@@ -154,6 +156,8 @@ def main():
   )
 
   dp.add_handler(conv_handler)
+
+  dp.add_error_handler(error)
 
   # Start the Bot
   updater.start_polling()

@@ -75,7 +75,7 @@ def set_player_by_name(update, context):
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
   
-  reply_keyboard = [['Re-enter Names', 'Proceed to Aka settings']]
+  reply_keyboard = [['Re-enter Names', 'Proceed']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
   update.message.reply_text(
     "`Player 1: {}\n"
@@ -118,7 +118,7 @@ def set_player_by_id(update, context):
     													parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
   
-  reply_keyboard = [['Re-enter Names', 'Proceed to Aka settings']]
+  reply_keyboard = [['Re-enter Names', 'Proceed']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
   update.message.reply_text(
     "`Player 1: {}\n"
@@ -312,7 +312,7 @@ def start_game(update, context):
 
 def discard_game_settings(update, context):
   user_data = context.user_data
-  update.message.reply_text("Game have been discarded.")
+  update.message.reply_text("`Game have been discarded.`")
 
   user_data.clear()
   return ConversationHandler.END
