@@ -1,5 +1,21 @@
 # Riichi Telegram Bot
 
+## Implemented Features
+
+#### Version 1.0
+
+```
+1. Complete Riichi score tracker
+2. Deleting of last recorded hand as a means of correcting mistakes
+3. Connect to and store game information to SMCRM db
+4. Allow for non SMCRM members to use the app without game storing functionalities
+
+To be implemented:
+1. Error handling
+2. Logging
+```
+
+
 ## Setup
 
 #### 1. Initialize Database
