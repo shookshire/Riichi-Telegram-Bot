@@ -6,6 +6,8 @@
 
 ```
 1. Added sending private messge to SMCRM users upon game completion
+2. Added submitting of final score only
+3. Added help
 ```
 
 #### Version 1.0

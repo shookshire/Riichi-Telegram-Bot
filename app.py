@@ -46,7 +46,11 @@ def main():
 
   # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
   conv_handler = ConversationHandler(
-    entry_points=[CommandHandler('start', handler.start_new_game)],
+    entry_points=[
+      CommandHandler('help', handler.helper),
+      CommandHandler('start', handler.start_new_game),
+      CommandHandler('record', handler.start_input_game_result)
+    ],
 
     states={
       SET_RECORDED_GAME: [
@@ -72,28 +76,22 @@ def main():
                                 handler.set_aka)
       ],
       SET_UMA: [
-        MessageHandler(Filters.regex('^(15/5|20/10)$'),
-                        handler.set_default_uma),
-        MessageHandler(Filters.regex('^Set custom uma$'),
-                        handler.select_custom_uma)
+        MessageHandler(Filters.regex('^(15/5|20/10)$'), handler.set_default_uma),
+        MessageHandler(Filters.regex('^Set custom uma$'), handler.select_custom_uma)
       ],
       SET_CUSTOM_UMA: [
-        MessageHandler(Filters.regex('^-?[0-9]+$'),
-                        handler.set_custom_uma)
+        MessageHandler(Filters.regex('^-?[0-9]+$'), handler.set_custom_uma)
       ],
       SELECT_HAVE_OKA: [
-        MessageHandler(Filters.regex('^(Yes|No)$'),
-                        handler.select_have_oka)
+        MessageHandler(Filters.regex('^(Yes|No)$'), handler.select_have_oka)
       ],
       SET_OKA: [
         MessageHandler(Filters.regex('^[0-9]+$'),
                         handler.set_oka)
       ],
       CONFIRM_GAME_SETTINGS: [
-        MessageHandler(Filters.regex('^Start game$'),
-            handler.start_game),
-        MessageHandler(Filters.regex('^Discard game$'),
-            handler.discard_game_settings)
+        MessageHandler(Filters.regex('^Start game$'), handler.start_game),
+        MessageHandler(Filters.regex('^Discard game$'), handler.discard_game_settings)
       ],
       SELECT_NEXT_COMMAND: [
         MessageHandler(Filters.regex('^New Hand$'), handler.add_new_hand),
@@ -149,6 +147,19 @@ def main():
       COMPLETE_GAME: [
         MessageHandler(Filters.regex('^Yes$'), handler.save_complete_game),
         MessageHandler(Filters.regex('^No$'), handler.select_have_penalty)
+      ],
+      SET_PLAYER_SCORE: [
+        MessageHandler(Filters.regex('^-?[0-9]+$'), handler.set_player_score)
+      ],
+      SET_LEFTOVER_POOL: [
+        MessageHandler(Filters.regex('^[0-9]*0$'), handler.set_leftover_pool)
+      ],
+      CONFIRM_RESULT_ONLY: [
+        MessageHandler(Filters.regex('^[0-9]+0$'), handler.set_leftover_pool)
+      ],
+      SAVE_RESULT_ONLY: [
+        MessageHandler(Filters.regex('^Yes$'), handler.save_result_only_game),
+        MessageHandler(Filters.regex('^No$'), handler.discard_result_only_game)
       ]
     },
 

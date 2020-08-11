@@ -362,3 +362,20 @@ def print_current_game_state(hands, player_names, intial_value):
 	text += '`Next Hand:\n{}{}  {} Honba`'.format(wind, rnd, honba)
 
 	return text
+
+def print_result_only_game_settings(game):
+  players = game['players']
+  player_names = get_all_player_name(players)
+
+  text = '`Initial value: {}\n`'.format(game['initial value'])
+  text += '`Aka: {}\n`'.format(game['aka'])
+  text += '`Uma: {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
+  text += '`Oka: {}\n\n`'.format(game['oka'])
+  text += '`Final Score:\n`'
+  text += print_name_score(player_names, game['final score'])
+  text += '`\nPool: {}\n\n`'.format(game['final pool'])
+  text += '`Penalty:\n`'
+  text += print_name_score(player_names, game['penalty'])
+
+  return text
+

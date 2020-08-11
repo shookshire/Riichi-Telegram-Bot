@@ -63,6 +63,22 @@ def set_new_game(game):
 
 	return row[0], row[1]
 
+def set_result_only_game(game):
+	pid = func.get_all_player_id(game['players'])
+	position = func.get_position(game['final score'])
+
+	sql = "INSERT INTO Game (start_time, end_time, status, initial_value, p1_id, p2_id, p3_id, p4_id, aka, uma_p1, uma_p2, uma_p3, uma_p4, oka, p1_score, p2_score, p3_score, p4_score, p1_position, p2_position, p3_position, p4_position, p1_penalty, p2_penalty, p3_penalty, p4_penalty) VALUES"
+	sql += "(NOW(), NOW(), 'complete', {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})".format(game['initial value'], pid[0], pid[1], pid[2], pid[3], game['aka'], game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3], game['oka'], game['final score'][0], game['final score'][1], game['final score'][2], game['final score'][3], position[0], position[1], position[2], position[3], game['penalty'][0], game['penalty'][1], game['penalty'][2], game['penalty'][3])
+
+	conn = connect_db()
+	cur = conn.cursor()
+	cur.execute(sql)
+	conn.commit()
+	cur.close()
+	conn.close()
+
+	return True
+
 def set_new_hand(hand, game_id, player_id):
 	conn = connect_db()
 	cur = conn.cursor()
@@ -93,7 +109,7 @@ def set_complete_game(game_id, score, position, penalty):
 	conn = connect_db()
 	cur = conn.cursor()
 
-	sql = "UPDATE Game SET status='complete', p1_score={}, p2_score={}, p3_score={}, p4_score={}, p1_position={}, p2_position={}, p3_position={}, p4_position={}, p1_penalty={}, p2_penalty={}, p3_penalty={}, p4_penalty={} WHERE gid={}".format(score[0], score[1], score[2], score[3], position[0], position[1], position[2], position[3], penalty[0], penalty[1], penalty[2], penalty[3], game_id)
+	sql = "UPDATE Game SET status='complete', end_time=NOW(), p1_score={}, p2_score={}, p3_score={}, p4_score={}, p1_position={}, p2_position={}, p3_position={}, p4_position={}, p1_penalty={}, p2_penalty={}, p3_penalty={}, p4_penalty={} WHERE gid={}".format(score[0], score[1], score[2], score[3], position[0], position[1], position[2], position[3], penalty[0], penalty[1], penalty[2], penalty[3], game_id)
 
 	cur.execute(sql)
 

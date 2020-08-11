@@ -13,8 +13,16 @@ import helper_functions as func
 import db
 from constants import *
 
+def helper(update, context):
+
+  update.message.reply_text(
+    "/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SMCRM server.\n/record : Save final game score to SMCRM server")
+
+  return ConversationHandler.END
+
 def start_new_game(update, context):
   user_data = context.user_data
+  user_data['result only'] = False
   user_data['players'] = []
 
   reply_keyboard = [['Yes', 'No']]
@@ -26,6 +34,22 @@ def start_new_game(update, context):
     reply_markup=markup)
 
   return SET_RECORDED_GAME
+
+def start_input_game_result(update, context):
+  user_data = context.user_data
+  user_data['result only'] = True
+  user_data['recorded'] = True
+  user_data['players'] = []
+  user_data['final score'] = []
+  user_data['penalty'] = [0,0,0,0]
+  user_data['final pool'] = 0
+
+  update.message.reply_text(
+    '`Please enter 1st player name or id number:`',
+    parse_mode=ParseMode.MARKDOWN_V2)
+
+  return SET_PLAYER_NAME
+
 
 def set_recorded_game(update, context):
   user_data = context.user_data
@@ -298,6 +322,14 @@ def start_game(update, context):
 
   player_names = func.get_all_player_name(user_data['players'])
 
+  if user_data['result only']:
+    user_data['final score'] = []
+    update.message.reply_text(
+      "`Please enter first player's final score in terms if 100.`",
+      parse_mode=ParseMode.MARKDOWN_V2)
+
+    return SET_PLAYER_SCORE
+
   if user_data['recorded']:
     gid, start_date = db.set_new_game(user_data)
     user_data['id'] = gid
@@ -310,6 +342,47 @@ def start_game(update, context):
   user_data['penalty'] = [0,0,0,0]
 
   return return_next_command(update, func.print_game_settings_info(user_data) + func.print_current_game_state(user_data['hands'], player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+
+def set_player_score(update, context):
+  user_data = context.user_data
+  text = int(update.message.text)
+  player_names = func.get_all_player_name(user_data['players'])
+
+  score = user_data['final score']
+  score.append(text)
+
+  if len(score) < 4:
+    update.message.reply_text(
+      "`Please enter next player's final score in terms if 100.`",
+      parse_mode=ParseMode.MARKDOWN_V2)
+
+    return SET_PLAYER_SCORE
+
+  text = "`Score:\n`"
+  text += func.print_name_score(player_names, score)
+
+  update.message.reply_text(
+    "`Please enter value of riichi stick confiscated in terms if 100.`",
+    parse_mode=ParseMode.MARKDOWN_V2)
+
+  return SET_LEFTOVER_POOL
+
+def set_leftover_pool(update, context):
+  user_data = context.user_data
+  text = int(update.message.text)
+  player_names = func.get_all_player_name(user_data['players'])
+
+  user_data['final pool'] = text
+
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    '`Are they any penalty?`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SELECT_HAVE_PENALTY
 
 def discard_game_settings(update, context):
   user_data = context.user_data
@@ -669,15 +742,21 @@ def confirm_penalty_done(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-    '`Have you completed setting the penalty? If yes, the game will be saved.`',
+    '`Have you completed setting the penalty?`',
     parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
+
+  if user_data['result only']:
+    return CONFIRM_RESULT_ONLY
 
   return COMPLETE_GAME
 
 def save_complete_game(update, context):
   user_data = context.user_data
   players = user_data['players']
+
+  if user_data['result only']:
+    return confirm_result_only_game(update, context)
 
   func.process_game(user_data)
 
@@ -689,6 +768,36 @@ def save_complete_game(update, context):
   for player in players:
     push_msg.send_msg('Hi! A game have been recorded with you as a participant.\n\nGame id: {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(user_data['id']), player['telegram_id'])
 
+  user_data.clear()
+  return ConversationHandler.END
+
+def confirm_result_only_game(update, context):
+  user_data = context.user_data
+  players = user_data['players']
+  player_names = func.get_all_player_name(players)
+
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    func.print_result_only_game_settings(user_data)
+    + '`\n\nAre the game settings correct?`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SAVE_RESULT_ONLY
+
+def save_result_only_game(update, context):
+  user_data = context.user_data
+
+  db.set_result_only_game(user_data)
+
+  update.message.reply_text("`Game have been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
+  user_data.clear()
+  return ConversationHandler.END
+
+def discard_result_only_game(update, context):
+  update.message.reply_text("`Game settings have been discarded`", parse_mode=ParseMode.MARKDOWN_V2)
   user_data.clear()
   return ConversationHandler.END
 
