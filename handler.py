@@ -8,6 +8,7 @@ from telegram import ReplyKeyboardMarkup, ParseMode
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
+import push_msg
 import helper_functions as func
 import db
 from constants import *
@@ -676,6 +677,7 @@ def confirm_penalty_done(update, context):
 
 def save_complete_game(update, context):
   user_data = context.user_data
+  players = user_data['players']
 
   func.process_game(user_data)
 
@@ -683,6 +685,9 @@ def save_complete_game(update, context):
     db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
 
   update.message.reply_text("`Game have been completed.`", parse_mode=ParseMode.MARKDOWN_V2)
+  
+  for player in players:
+    push_msg.send_msg('Hi! A game have been recorded with you as a participant.\n\nGame id: {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(user_data['id']), player['telegram_id'])
 
   user_data.clear()
   return ConversationHandler.END

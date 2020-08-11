@@ -18,7 +18,7 @@ def get_player_by_name(name):
 	conn = connect_db()
 	cur = conn.cursor()
 
-	cur.execute("SELECT pid, pname FROM Players where pname=lower('{}')".format(name))
+	cur.execute("SELECT pid, pname, telegram_id FROM Players where pname=lower('{}') and reg_status='complete'".format(name))
 	row = cur.fetchone()
 
 	cur.close()
@@ -27,13 +27,13 @@ def get_player_by_name(name):
 	if row is None:
 		return None
 
-	return {'id': row[0], 'name': func.handle_name(row[1])}
+	return {'id': row[0], 'name': func.handle_name(row[1]), 'telegram_id': row[2]}
 
 def get_player_by_id(pid):
 	conn = connect_db()
 	cur = conn.cursor()
 
-	cur.execute("SELECT pid, pname FROM Players where pid={}".format(pid))
+	cur.execute("SELECT pid, pname, telegram_id FROM Players where pid={} and reg_status='complete'".format(pid))
 	row = cur.fetchone()
 
 	cur.close()
@@ -42,7 +42,7 @@ def get_player_by_id(pid):
 	if row is None:
 		return None
 
-	return {'id': row[0], 'name': func.handle_name(row[1])}
+	return {'id': row[0], 'name': func.handle_name(row[1]), 'telegram_id': row[2]}
 
 def set_new_game(game):
 	pid = func.get_all_player_id(game['players'])

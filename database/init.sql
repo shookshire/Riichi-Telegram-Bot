@@ -7,7 +7,9 @@ CREATE TABLE Players (
 	pid SERIAL PRIMARY KEY,
 	pname VARCHAR(20) NOT NULL,
 	full_name varchar(50),
-	ic varchar(20)
+	ic varchar(20),
+	telegram_id integer,
+	reg_status varchar(20) default 'pending' --'pending' or 'complete'
 );
 
 CREATE OR REPLACE FUNCTION lower_name_of_player()
@@ -33,7 +35,7 @@ CREATE TABLE Game (
 	start_time 	TIMESTAMP,
 	end_time 		TIMESTAMP,
 	initial_value	INTEGER,
-	status 			VARCHAR(20) NOT NULL default 'in progress',
+	status 			VARCHAR(20) NOT NULL default 'in progress', --'in progress' or 'complete'
 	p1_id 			INTEGER NOT NULL,
 	p2_id 			INTEGER NOT NULL,
 	p3_id 			INTEGER NOT NULL,

@@ -2,6 +2,12 @@
 
 ## Implemented Features
 
+#### Version 1.1
+
+```
+1. Added sending private messge to SMCRM users upon game completion
+```
+
 #### Version 1.0
 
 ```
@@ -10,7 +16,6 @@
 3. Connect to and store game information to SMCRM db
 4. Allow for non SMCRM members to use the app without game storing functionalities
 ```
-
 
 ## Setup
 
