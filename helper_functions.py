@@ -379,3 +379,8 @@ def print_result_only_game_settings(game):
 
   return text
 
+def print_game_confirmation(gid, player_names):
+	text = 'Hi! A game have been recorded with you as a participant.\n\nGame id: {}\n\n'.format(gid)
+	text += 'Players: {}, {}, {}, {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(player_names[0], player_names[1], player_names[2], player_names[3])
+
+	return text

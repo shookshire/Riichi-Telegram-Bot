@@ -325,7 +325,7 @@ def start_game(update, context):
   if user_data['result only']:
     user_data['final score'] = []
     update.message.reply_text(
-      "`Please enter first player's final score in terms if 100.`",
+      "`Please enter first player's final score in terms of 100.`",
       parse_mode=ParseMode.MARKDOWN_V2)
 
     return SET_PLAYER_SCORE
@@ -353,7 +353,7 @@ def set_player_score(update, context):
 
   if len(score) < 4:
     update.message.reply_text(
-      "`Please enter next player's final score in terms if 100.`",
+      "`Please enter next player's final score in terms of 100.`",
       parse_mode=ParseMode.MARKDOWN_V2)
 
     return SET_PLAYER_SCORE
@@ -362,7 +362,7 @@ def set_player_score(update, context):
   text += func.print_name_score(player_names, score)
 
   update.message.reply_text(
-    "`Please enter value of riichi stick confiscated in terms if 100.`",
+    "`Please enter value of riichi stick confiscated in terms of 100.`",
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_LEFTOVER_POOL
@@ -386,7 +386,8 @@ def set_leftover_pool(update, context):
 
 def discard_game_settings(update, context):
   user_data = context.user_data
-  update.message.reply_text("`Game have been discarded.`")
+  update.message.reply_text("`Game have been discarded.`",
+    parse_mode=ParseMode.MARKDOWN_V2)
 
   user_data.clear()
   return ConversationHandler.END
@@ -712,7 +713,7 @@ def set_penalty_player(update, context):
   player_names = func.get_all_player_name(user_data['players'])
 
   if not func.is_valid_player_name(text, player_names):
-    return return_4_player_done_option(update, player_names, SET_PENALTY, '`Invalid player name entered\nPlease enter a valid player name`')
+    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Invalid player name entered\nPlease enter a valid player name`')
 
   player_idx = func.get_player_idx(text, player_names)
 
@@ -754,6 +755,7 @@ def confirm_penalty_done(update, context):
 def save_complete_game(update, context):
   user_data = context.user_data
   players = user_data['players']
+  player_names = func.get_all_player_name(user_data['players'])
 
   if user_data['result only']:
     return confirm_result_only_game(update, context)
@@ -766,7 +768,8 @@ def save_complete_game(update, context):
   update.message.reply_text("`Game have been completed.`", parse_mode=ParseMode.MARKDOWN_V2)
   
   for player in players:
-    push_msg.send_msg('Hi! A game have been recorded with you as a participant.\n\nGame id: {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(user_data['id']), player['telegram_id'])
+    if not player['telegram_id'] is None:
+      push_msg.send_msg(func.print_game_confirmation(user_data['id'], player_names), player['telegram_id'])
 
   user_data.clear()
   return ConversationHandler.END
@@ -789,10 +792,17 @@ def confirm_result_only_game(update, context):
 
 def save_result_only_game(update, context):
   user_data = context.user_data
+  players = user_data['players']
+  player_names = func.get_all_player_name(user_data['players'])
 
-  db.set_result_only_game(user_data)
+  gid = db.set_result_only_game(user_data)
 
   update.message.reply_text("`Game have been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
+
+  for player in players:
+    if not player['telegram_id'] is None:
+      push_msg.send_msg(func.print_game_confirmation(gid, player_names), player['telegram_id'])
+
   user_data.clear()
   return ConversationHandler.END
 
