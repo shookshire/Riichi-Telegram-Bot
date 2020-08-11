@@ -58,6 +58,7 @@ CREATE TABLE Game (
 	p2_penalty	INTEGER,
 	p3_penalty	INTEGER,
 	p4_penalty	INTEGER,
+	approval_status	VARCHAR(20)
 	FOREIGN KEY (p1_id) REFERENCES Players,
 	FOREIGN KEY (p2_id) REFERENCES Players,
 	FOREIGN KEY (p3_id) REFERENCES Players,
