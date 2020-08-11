@@ -55,3 +55,11 @@ db_password: <your_db_password>
 cd ${repo_dir_location}/
 python app.py
 ```
+
+## Take Note
+
+
+```
+in db Players table, only players who's reg_status is 'complete' is considered a valid player
+Once the project is running, if there are any future changes to database table, do not update the tables by editing init.sql and re-initializing as it would cause all saved data in the db to be deleted. Instead, create another sql file to modify tables without affecting current data.
+```
