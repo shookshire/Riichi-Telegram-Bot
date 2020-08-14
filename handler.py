@@ -85,7 +85,7 @@ def set_player_by_name(update, context):
         parse_mode=ParseMode.MARKDOWN_V2)
       return SET_PLAYER_NAME
   else:
-    player_info = {'id': 0, 'name': name}
+    player_info = {'id': 0, 'name': name, 'telegram_id': None}
 
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
@@ -128,7 +128,7 @@ def set_player_by_id(update, context):
         parse_mode=ParseMode.MARKDOWN_V2)
       return SET_PLAYER_NAME
   else:
-    player_info = {'id': 0, 'name': func.handle_name(text)}
+    player_info = {'id': 0, 'name': func.handle_name(text), 'telegram_id': None}
 
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
@@ -695,6 +695,10 @@ def confirm_game_end(update, context):
   return SELECT_HAVE_PENALTY
 
 def return_to_next_command(update, context):
+  user_data = context.user_data
+  hands = user_data['hands']
+  player_names = func.get_all_player_name(user_data['players'])
+
   return return_next_command(update, 
     func.print_current_game_state(hands, player_names, user_data['initial value'])
     + '`\n\nPlease select an option:`')

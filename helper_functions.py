@@ -28,8 +28,7 @@ def get_player_idx(text, player_names):
   return player_names.index(name)
 
 def get_last_valid_hand(hands):
-	for i in range(len(hands)):
-		hand = hands[-i]
+	for hand in reversed(hands):
 		if not hand['outcome'] == 'Chombo':
 			return hand
 
@@ -205,13 +204,13 @@ def get_draw_score_change(hand):
   neg_value = 0
   if num_tenpai == 1:
   	pos_value = 30
-  	neg_value = 10
+  	neg_value = -10
   if num_tenpai == 2:
   	pos_value = 15
-  	neg_value = 15
+  	neg_value = -15
   if num_tenpai == 3:
   	pos_value = 10
-  	neg_value = 30
+  	neg_value = -30
 
   for i in range(len(tenpai)):
   	if tenpai[i]:
@@ -301,7 +300,7 @@ def print_hand_settings(hand, player_names):
 	text = '`Hand Number: {}\n`'.format(hand['hand num'])
 	text += '`Round: {}{}  {} Honba\n\n`'.format(hand['wind'], hand['round num'], hand['honba'])
 	
-	if any(hand['chombo']):
+	if hand['outcome'] == 'Chombo':
 		text += '`Who Chombo:\n`'
 		text += print_select_names(player_names, hand['chombo'])
 		return text
@@ -332,7 +331,10 @@ def print_score_change(hand, player_names):
 	text += print_name_score(player_names, hand['score change'])
 	text += '`\nCurrent Score:\n---------------------------------------\n`'
 	text += print_name_score(player_names, hand['final score'])
-	text += '`\nValue in pool: {}`'.format(hand['pool'])
+	text += '`\nValue in pool: {}\n\n`'.format(hand['pool'])
+
+	wind, rnd, honba = get_next_hand_wind_round_honba(hand)
+	text += '`Next Hand:\n{}{}  {} Honba`'.format(wind, rnd, honba)
 
 	return text
 

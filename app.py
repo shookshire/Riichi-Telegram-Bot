@@ -102,13 +102,13 @@ def main():
         MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Chombo)$'), handler.set_hand_outcome)
       ],
       SET_WINNER: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_winner)
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_winner)
       ],
       SET_LOSER: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_loser)
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_loser)
       ],
       SET_DRAW_TENPAI: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_draw_tenpai),
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_draw_tenpai),
         MessageHandler(Filters.regex('^Done$'), handler.set_draw_tenpai_done)
       ],
       SET_HAN: [
@@ -118,11 +118,11 @@ def main():
         MessageHandler(Filters.regex('^(25|[2-9]0|1[1-3]0)$'), handler.set_fu)
       ],
       SET_RIICHI: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_riichi),
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_riichi),
         MessageHandler(Filters.regex('^Done$'), handler.set_riichi_done)
       ],
       SET_CHOMBO: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_chombo),
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_chombo),
         MessageHandler(Filters.regex('^Done$'), handler.set_chombo_done)
       ],
       PROCESS_HAND: [
@@ -138,7 +138,7 @@ def main():
         MessageHandler(Filters.regex('^No$'), handler.save_complete_game)
       ],
       SET_PENALTY_PLAYER: [
-        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_penalty_player),
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_penalty_player),
         MessageHandler(Filters.regex('^Done$'), handler.confirm_penalty_done)
       ],
       SET_PENALTY_VALUE: [
