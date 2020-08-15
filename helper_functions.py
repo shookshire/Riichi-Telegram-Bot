@@ -139,7 +139,10 @@ def get_valid_fu(outcome, han):
       lst = [*TSUMO_VALUE[han]]
   else:
       lst = [*RON_VALUE[han]]
+
+  lst = [int(i) for i in lst]
   lst.sort()
+  lst = [str(i) for i in lst]
   return lst
 
 def is_oya_win(hand):
