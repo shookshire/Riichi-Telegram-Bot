@@ -67,6 +67,22 @@ def main():
         MessageHandler(Filters.regex('^(Re-enter Names|Proceed)$'),
                         handler.confirm_player_name)
       ],
+      SELECT_EDIT_SETTINGS: [
+        MessageHandler(Filters.regex('^Initial Value$'),
+                        handler.select_edit_initial_value),
+        MessageHandler(Filters.regex('^Aka$'),
+                        handler.select_edit_aka),
+        MessageHandler(Filters.regex('^Uma$'),
+                        handler.select_edit_uma),
+        MessageHandler(Filters.regex('^Oka$'),
+                        handler.select_edit_oka),
+        MessageHandler(Filters.regex('^Chombo Value$'),
+                        handler.select_edit_chombo_value),
+        MessageHandler(Filters.regex('^Chombo Options$'),
+                        handler.select_edit_chombo_payment_option),
+        MessageHandler(Filters.regex('^Done$'),
+                        handler.select_edit_done),
+      ],
       SET_INITIAL_VALUE: [
         MessageHandler(Filters.regex('^(250|300)$'),
                                 handler.set_initial_value)
@@ -82,12 +98,17 @@ def main():
       SET_CUSTOM_UMA: [
         MessageHandler(Filters.regex('^-?[0-9]+$'), handler.set_custom_uma)
       ],
-      SELECT_HAVE_OKA: [
-        MessageHandler(Filters.regex('^(Yes|No)$'), handler.select_have_oka)
-      ],
       SET_OKA: [
         MessageHandler(Filters.regex('^[0-9]+$'),
                         handler.set_oka)
+      ],
+      SET_CHOMBO_VALUE: [
+        MessageHandler(Filters.regex('^[0-9]+$'),
+                        handler.set_chombo_value)
+      ],
+      SET_CHOMBO_PAYMENT_OPTION: [
+        MessageHandler(Filters.regex('^(Payment to all|Flat deduction)$'),
+                        handler.set_chombo_payment_option)
       ],
       CONFIRM_GAME_SETTINGS: [
         MessageHandler(Filters.regex('^Start game$'), handler.start_game),

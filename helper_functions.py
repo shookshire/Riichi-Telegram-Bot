@@ -52,6 +52,22 @@ def get_next_wind_round(wind, round_num):
 
 	return 'W', 1
 
+def process_chombo_hand(hand, chombo_value, chombo_option):
+	chombo = hand['chombo']
+	if chombo_option == 'Flat deduction':
+		for i in range(len(chombo)):
+			if chombo[i]:
+				hand['final score'][i] -= chombo_value
+
+	if chombo_option == 'Payment to all':
+		value_distributed = 0
+		for i in range(len(chombo)):
+			if chombo[i]:
+				hand['final score'][i] -= chombo_value*4
+				value_distributed += chombo_value*4
+		for i in range(len(chombo)):
+			hand['final score'][i] += int(value_distributed/4)
+
 def process_hand(hand):
 	score_change, pool = get_total_score_change(hand)
 	hand['score change'] = score_change
@@ -83,6 +99,9 @@ def get_next_hand_wind_round_honba(prev_hand):
 	round_num = prev_hand['round num']
 	honba = prev_hand['honba']
 
+	if prev_hand['outcome'] == 'Chombo':
+		return wind, round_num, honba
+
 	if is_renchan(prev_hand):
 		honba += 1
 	else:
@@ -95,10 +114,10 @@ def get_next_hand_wind_round_honba(prev_hand):
 	return wind, round_num, honba
 
 def create_new_hand(hands, intial_value):
-	prev_hand = get_last_valid_hand(hands)
+	prev_hand = None if len(hands) == 0 else hands[-1]
 
 	new_hand = {
-		'hand num': 1 if len(hands) == 0 else hands[-1]['hand num'] + 1,
+		'hand num': 1 if prev_hand is None else prev_hand['hand num'] + 1,
 		'wind': 'E',
 		'round num': 1,
 		'honba': 0,
@@ -127,8 +146,8 @@ def create_new_hand(hands, intial_value):
 	new_hand['wind'] = wind
 	new_hand['round num'] = round_num
 	new_hand['honba'] = honba
-	new_hand['initial score'] = prev_hand['final score']
-	new_hand['final score'] = prev_hand['final score']
+	new_hand['initial score'] = prev_hand['final score'].copy()
+	new_hand['final score'] = prev_hand['final score'].copy()
 	new_hand['pool'] = prev_hand['pool']
 
 	return new_hand
@@ -347,6 +366,17 @@ def print_penalty(penalty, player_names):
 
 	return text
 
+def print_current_game_settings(game):
+	text = '`Settings:\n`'
+	text += '`---------------------------------------\n`'
+	text += '`Initial Value: | {}\n`'.format(game['initial value'])
+	text += '`Aka:           | {}\n`'.format(game['aka'])
+	text += '`Uma:           | {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
+	text += '`Oka:           | {}\n`'.format(game['oka'])
+	text += '`Chombo Value:  | {}\n`'.format(game['chombo value'])
+	text += '`Chombo Option: | {}\n`'.format(game['chombo option'])
+
+	return text
 
 def print_current_game_state(hands, player_names, intial_value):
 	if len(hands) == 0:
