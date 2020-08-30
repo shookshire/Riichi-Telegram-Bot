@@ -72,6 +72,7 @@ CREATE TABLE Hand (
 	wind			VARCHAR(1) NOT NULL,
 	round_num	INTEGER NOT NULL,
 	honba			INTEGER	NOT NULL DEFAULT 0,
+	pool			INTEGER DEFAULT 0,
 	outcome		VARCHAR(10) NOT NULL,
 	han 			INTEGER,
 	fu				INTEGER,

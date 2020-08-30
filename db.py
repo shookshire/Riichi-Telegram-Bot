@@ -86,8 +86,8 @@ def set_new_hand(hand, game_id, player_id):
 	conn = connect_db()
 	cur = conn.cursor()
 
-	sql = "INSERT INTO Hand (gid, hand_num, wind, round_num, honba, outcome, han, fu, value) VALUES"
-	sql += "({}, {}, '{}', {}, {}, '{}', {}, {}, {}) returning hid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
+	sql = "INSERT INTO Hand (gid, hand_num, wind, round_num, honba, pool, outcome, han, fu, value) VALUES"
+	sql += "({}, {}, '{}', {}, {}, {}, '{}', {}, {}, {}) returning hid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['pool'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
 
 	cur.execute(sql)
 	hid = cur.fetchone()[0]

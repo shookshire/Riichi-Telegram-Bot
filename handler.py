@@ -429,16 +429,11 @@ def discard_game_settings(update, context):
 
 def add_new_hand(update, context):
   user_data = context.user_data
+  player_names = func.get_all_player_name(user_data['players'])
   user_data['new hand'] = func.create_new_hand(user_data['hands'], user_data['initial value'])
 
-  reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Chombo']]
-  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+  return return_4_player_done_option(update, player_names, SET_RIICHI,'`Who riichi?`')
 
-  update.message.reply_text(
-    '`What is the hand outcome?`',
-    parse_mode=ParseMode.MARKDOWN_V2,
-    reply_markup=markup)
-  return SET_HAND_OUTCOME
 
 def return_4_player_option(update, player_names, return_state, text):
   reply_keyboard = [
@@ -561,9 +556,7 @@ def set_han(update, context):
     fu_list = func.get_valid_fu(new_hand['outcome'], new_hand['han'])
     return return_set_fu(update, fu_list, '`How many Fu?`')
 
-  return return_4_player_done_option(update, player_names, SET_RIICHI, 
-    '`Hand Value: {} Han\n`'.format(new_hand['han'])
-    + '`\nWho riichi?`')
+  return return_save_discard_hand_option(update, new_hand, player_names)
 
 def set_fu(update, context):
   user_data = context.user_data
@@ -576,9 +569,7 @@ def set_fu(update, context):
     return return_set_fu(update, fu_list, '`Invalid Fu Selected\nPlease choose a valid Fu`')
 
   new_hand['fu'] = text
-  return return_4_player_done_option(update, player_names, SET_RIICHI, 
-    '`Hand Value: {} Han {} Fu\n`'.format(new_hand['han'], new_hand['fu'])
-    + '`\nWho riichi?`')
+  return return_save_discard_hand_option(update, new_hand, player_names)
 
 def set_draw_tenpai(update, context):
   user_data = context.user_data
@@ -605,10 +596,7 @@ def set_draw_tenpai_done(update, context):
   player_names = func.get_all_player_name(user_data['players'])
   tenpai = new_hand['tenpai']
 
-  return return_4_player_done_option(update, player_names, SET_RIICHI, 
-    '`Players who are in tenpai:\n---------------------------------------\n`'
-    + func.print_select_names(player_names, tenpai)
-    + '`\nWho riichi?`')
+  return return_save_discard_hand_option(update, new_hand, player_names)
 
 def set_riichi(update, context):
   user_data = context.user_data
@@ -629,11 +617,7 @@ def set_riichi(update, context):
     + func.print_select_names(player_names, riichi)
     + '`\nWho riichi?`')
 
-def set_riichi_done(update, context):
-  user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
-
+def return_save_discard_hand_option(update, new_hand, player_names):
   reply_keyboard = [['Save', 'Discard']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -644,6 +628,20 @@ def set_riichi_done(update, context):
     reply_markup=markup)
 
   return PROCESS_HAND
+
+def set_riichi_done(update, context):
+  user_data = context.user_data
+  new_hand = user_data['new hand']
+  player_names = func.get_all_player_name(user_data['players'])
+
+  reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Chombo']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    '`What is the hand outcome?`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+  return SET_HAND_OUTCOME
 
 def set_chombo(update, context):
   user_data = context.user_data
@@ -807,7 +805,9 @@ def save_complete_game(update, context):
   if user_data['recorded']:
     db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
 
-  update.message.reply_text("`Game have been completed.`", parse_mode=ParseMode.MARKDOWN_V2)
+  final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
+
+  update.message.reply_text("`Game have been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
   
   for player in players:
     if not player['telegram_id'] is None:

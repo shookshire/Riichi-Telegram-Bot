@@ -419,3 +419,20 @@ def print_game_confirmation(gid, player_names):
 	text += 'Players: {}, {}, {}, {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(player_names[0], player_names[1], player_names[2], player_names[3])
 
 	return text
+
+def print_end_game_result(gid, player_names, score, position):
+	
+	max_name_len = get_max_len(player_names)
+	res = []
+	for i in range(4):
+		res.append({'name': player_names[i], 'score': score[i], 'position': position[i]})
+
+	res = sorted(res, key=lambda k: k['position'])
+
+	text = '`Game id: {}\n\n`'.format(gid)
+	text += '`'
+	for obj in res:
+		text += '{}'.format(obj['name']).ljust(max_name_len + 1) + '| {}'.format(obj['score']).ljust(7) + '| {}\n'.format(obj['position'])
+	text += '`'
+
+	return text

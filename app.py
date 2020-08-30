@@ -136,7 +136,7 @@ def main():
         MessageHandler(Filters.regex('^([1-9]|1[0-3])$'), handler.set_han)
       ],
       SET_FU: [
-        MessageHandler(Filters.regex('^(25|[2-9]0|1[1-3]0)$'), handler.set_fu)
+        MessageHandler(Filters.regex('^(25|[2-9]0|1[0-3]0)$'), handler.set_fu)
       ],
       SET_RIICHI: [
         MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_riichi),
