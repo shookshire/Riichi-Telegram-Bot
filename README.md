@@ -23,7 +23,7 @@
 
 #### 1. Initialize Database
 
-###### Create a database named riichi and run the following command
+###### Create a database named riichi, open a command prompt and run the following commands
 
 ```sh
 cd ${repo_dir_location}/database/
@@ -41,7 +41,7 @@ psql riichi <your_db_username>
 
 ```
 bot_token: Token for the telegram bot obtained form bot father
-db_host: Host of the db eg. localhost
+db_host: IP address of the database, if the database is ran locally, put localhost
 db_database: Name of the database eg. riichi
 db_user: <your_db_username>
 db_password: <your_db_password>
@@ -51,10 +51,15 @@ db_password: <your_db_password>
 
 #### 3. Run the system
 
+###### Open another command prompt and run
+
 ```sh
 cd ${repo_dir_location}/
+pip install -r requirements.txt
 python app.py
 ```
+
+###### This will run the application. Note that this command prompt cannot be closed or the application will stop
 
 ## Take Note
 
