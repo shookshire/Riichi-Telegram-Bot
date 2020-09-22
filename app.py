@@ -80,8 +80,14 @@ def main():
                         handler.select_edit_chombo_value),
         MessageHandler(Filters.regex('^Chombo Options$'),
                         handler.select_edit_chombo_payment_option),
+        MessageHandler(Filters.regex('^Kiriage Mangan$'),
+                        handler.select_edit_kiriage_mangan),
         MessageHandler(Filters.regex('^Done$'),
-                        handler.select_edit_done),
+                        handler.select_edit_done)
+      ],
+      SET_KIRIAGE: [
+        MessageHandler(Filters.regex('^(Yes|No)$'),
+                                handler.set_kiriage_mangan)
       ],
       SET_INITIAL_VALUE: [
         MessageHandler(Filters.regex('^(250|300)$'),

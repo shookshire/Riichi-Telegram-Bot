@@ -185,11 +185,12 @@ def confirm_player_name(update, context):
   user_data['oka'] = 0
   user_data['chombo value'] = 40
   user_data['chombo option'] = 'Payment to all'
+  user_data['kiriage'] = True
 
   return return_select_edit_settings(update, user_data)
 
 def return_select_edit_settings(update, game):
-  reply_keyboard = [['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options'], ['Done']]
+  reply_keyboard = [['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options'], ['Kiriage Mangan', 'Done']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -199,6 +200,28 @@ def return_select_edit_settings(update, game):
     reply_markup=markup)
 
   return SELECT_EDIT_SETTINGS
+
+@catch_error
+def select_edit_kiriage_mangan(update, context):
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    "`Is there kiriage mangan?:`",
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SET_KIRIAGE
+
+@catch_error
+def set_kiriage_mangan(update, context):
+  user_data = context.user_data
+  text = update.message.text
+
+  kiriage = text == 'Yes'
+  user_data['kiriage'] = kiriage
+
+  return return_select_edit_settings(update, user_data)
 
 @catch_error
 def select_edit_initial_value(update, context):
@@ -734,7 +757,7 @@ def save_hand(update, context):
   if new_hand['outcome'] == 'Chombo':
     func.process_chombo_hand(new_hand, user_data['chombo value'], user_data['chombo option'])
   else:
-    func.process_hand(new_hand)
+    func.process_hand(new_hand, user_data['kiriage'])
 
   if user_data['recorded']:
     db.set_new_hand(new_hand, user_data['id'], func.get_all_player_id(user_data['players']))

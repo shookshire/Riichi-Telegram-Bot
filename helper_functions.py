@@ -68,8 +68,8 @@ def process_chombo_hand(hand, chombo_value, chombo_option):
 		for i in range(len(chombo)):
 			hand['final score'][i] += int(value_distributed/4)
 
-def process_hand(hand):
-	score_change, pool = get_total_score_change(hand)
+def process_hand(hand, kiriage):
+	score_change, pool = get_total_score_change(hand, kiriage)
 	hand['score change'] = score_change
 	hand['pool'] = pool
 	hand['final score'] = get_new_score(hand['initial score'], score_change)
@@ -172,25 +172,51 @@ def is_oya_win(hand):
 def get_new_score(prev_score, score_change):
   return [x + y for x, y in zip(score_change, prev_score)]
 
-def get_total_score_change(hand):
-  score_change = get_tsumo_score_change(hand, hand['honba']) if hand['outcome'] == 'Tsumo' else get_ron_score_change(hand, hand['honba']) if hand['outcome'] == 'Ron' else get_draw_score_change(hand)
+def get_total_score_change(hand, kiriage):
+  score_change = get_tsumo_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Tsumo' else get_ron_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Ron' else get_draw_score_change(hand)
   stick_score_change, new_pool = get_riichi_stick_change(hand, hand['pool'])
 
   return [x + y for x, y in zip(score_change, stick_score_change)], new_pool
 
-def get_tsumo_score_change(hand, honba):
+def get_value_list(result_type, oya=False, kiriage=True):
+	scores = {
+		'Tsumo': {
+			'oya': {
+				'not_kiriage': TSUMO_OYA_VALUE,
+				'kiriage': TSUMO_OYA_KIRIAGE_VALUE
+			},
+			'ko': {
+				'not_kiriage': TSUMO_VALUE,
+				'kiriage': TSUMO_KIRIAGE_VALUE
+			}
+		},
+		'Ron': {
+			'oya': {
+				'not_kiriage': RON_OYA_VALUE,
+				'kiriage': RON_OYA_KIRIAGE_VALUE
+			},
+			'ko': {
+				'not_kiriage': RON_VALUE,
+				'kiriage': RON_KIRIAGE_VALUE
+			}
+		}
+	}
+
+	return scores[result_type]['oya' if oya else 'ko']['kiriage' if kiriage else 'not_kiriage']
+
+def get_tsumo_score_change(hand, honba, kiriage):
   winner = hand['winner idx']
   score_change = [0,0,0,0]
 
   if is_oya_win(hand):
-    value = TSUMO_OYA_VALUE[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else TSUMO_OYA_VALUE[hand['han']]
+    value = get_value_list('Tsumo', True, kiriage)[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else get_value_list('Tsumo', True, kiriage)[hand['han']]
     for i in range(4):
       if not i == winner:
         score_change[i] = -value - honba
     score_change[winner] = -sum(score_change)
   else:
-    oya_value = TSUMO_OYA_VALUE[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else TSUMO_OYA_VALUE[hand['han']]
-    value = TSUMO_VALUE[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else TSUMO_VALUE[hand['han']]
+    oya_value = get_value_list('Tsumo', True, kiriage)[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else get_value_list('Tsumo', True, kiriage)[hand['han']]
+    value = get_value_list('Tsumo', False, kiriage)[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else get_value_list('Tsumo', False, kiriage)[hand['han']]
     for i in range(4):
       if not i == winner:
         score_change[i] = -value - honba
@@ -199,15 +225,15 @@ def get_tsumo_score_change(hand, honba):
 
   return score_change
 
-def get_ron_score_change(hand, honba): 
+def get_ron_score_change(hand, honba, kiriage): 
   winner = hand['winner idx']
   loser = hand['loser idx']
   score_change = [0,0,0,0]
 
   if is_oya_win(hand):
-    value = RON_OYA_VALUE[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else RON_OYA_VALUE[hand['han']]
+    value = get_value_list('Ron', True, kiriage)[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else get_value_list('Ron', True, kiriage)[hand['han']]
   else:
-    value = RON_VALUE[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else RON_VALUE[hand['han']]
+    value = get_value_list('Ron', False, kiriage)[hand['han']][hand['fu']] if re.match('^[1-4]$', hand['han']) else get_value_list('Ron', False, kiriage)[hand['han']]
 
   score_change[winner] = value + honba*3
   score_change[loser] = -value - honba*3
@@ -369,12 +395,13 @@ def print_penalty(penalty, player_names):
 def print_current_game_settings(game):
 	text = '`Settings:\n`'
 	text += '`---------------------------------------\n`'
-	text += '`Initial Value: | {}\n`'.format(game['initial value'])
-	text += '`Aka:           | {}\n`'.format(game['aka'])
-	text += '`Uma:           | {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
-	text += '`Oka:           | {}\n`'.format(game['oka'])
-	text += '`Chombo Value:  | {}\n`'.format(game['chombo value'])
-	text += '`Chombo Option: | {}\n`'.format(game['chombo option'])
+	text += '`Initial Value:  | {}\n`'.format(game['initial value'])
+	text += '`Aka:            | {}\n`'.format(game['aka'])
+	text += '`Uma:            | {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
+	text += '`Oka:            | {}\n`'.format(game['oka'])
+	text += '`Chombo Value:   | {}\n`'.format(game['chombo value'])
+	text += '`Chombo Option:  | {}\n`'.format(game['chombo option'])
+	text += '`Kiriage Mangan: | {}\n`'.format('Yes' if game['kiriage'] else 'No')
 
 	return text
 
