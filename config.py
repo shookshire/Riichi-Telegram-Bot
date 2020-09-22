@@ -8,3 +8,7 @@ DB_CONFIG = {
   'db_user':"",
   'db_password':""
 }
+
+LOGGER_CONFIG = {
+	'level': 'WARNING' #'WARNING' or 'INFO'
+}
