@@ -1,4 +1,3 @@
-import logging
 import re
 import numpy as np
 import string
@@ -12,7 +11,9 @@ import push_msg
 import helper_functions as func
 import db
 from constants import *
+from log_helper import catch_error
 
+@catch_error
 def helper(update, context):
 
   update.message.reply_text(
@@ -20,6 +21,7 @@ def helper(update, context):
 
   return ConversationHandler.END
 
+@catch_error
 def start_new_game(update, context):
   user_data = context.user_data
   user_data['result only'] = False
@@ -35,6 +37,7 @@ def start_new_game(update, context):
 
   return SET_RECORDED_GAME
 
+@catch_error
 def start_input_game_result(update, context):
   user_data = context.user_data
   user_data['result only'] = True
@@ -51,6 +54,7 @@ def start_input_game_result(update, context):
   return SET_PLAYER_NAME
 
 
+@catch_error
 def set_recorded_game(update, context):
   user_data = context.user_data
   user_data['recorded'] = True
@@ -61,6 +65,7 @@ def set_recorded_game(update, context):
 
   return SET_PLAYER_NAME
 
+@catch_error
 def set_not_recorded_Game(update, context):
   user_data = context.user_data
   user_data['recorded'] = False
@@ -71,6 +76,7 @@ def set_not_recorded_Game(update, context):
 
   return SET_PLAYER_NAME
 
+@catch_error
 def set_player_by_name(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -115,6 +121,7 @@ def set_player_by_name(update, context):
     reply_markup=markup)
   return CONFIRM_PLAYER_NAME
 
+@catch_error
 def set_player_by_id(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -158,6 +165,7 @@ def set_player_by_id(update, context):
     reply_markup=markup)
   return CONFIRM_PLAYER_NAME
 
+@catch_error
 def confirm_player_name(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -192,6 +200,7 @@ def return_select_edit_settings(update, game):
 
   return SELECT_EDIT_SETTINGS
 
+@catch_error
 def select_edit_initial_value(update, context):
   reply_keyboard = [['250', '300']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -203,6 +212,7 @@ def select_edit_initial_value(update, context):
 
   return SET_INITIAL_VALUE
 
+@catch_error
 def set_initial_value(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -211,6 +221,7 @@ def set_initial_value(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def select_edit_aka(update, context):
   reply_keyboard = [['Aka-Ari', 'Aka-Nashi']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -222,6 +233,7 @@ def select_edit_aka(update, context):
 
   return SET_AKA
 
+@catch_error
 def set_aka(update, context):
   text = update.message.text
   user_data = context.user_data
@@ -230,6 +242,7 @@ def set_aka(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def select_edit_uma(update, context):
   reply_keyboard = [['15/5', '20/10'], ['Set custom uma']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -241,6 +254,7 @@ def select_edit_uma(update, context):
 
   return SET_UMA
 
+@catch_error
 def set_default_uma(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -253,6 +267,7 @@ def set_default_uma(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def select_custom_uma(update, context):
   user_data = context.user_data
   user_data['uma'] = []
@@ -263,6 +278,7 @@ def select_custom_uma(update, context):
 
   return SET_CUSTOM_UMA
 
+@catch_error
 def set_custom_uma(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -276,6 +292,7 @@ def set_custom_uma(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def select_edit_oka(update, context):
   update.message.reply_text(
     '`Please enter oka amount`',
@@ -283,6 +300,7 @@ def select_edit_oka(update, context):
 
   return SET_OKA
 
+@catch_error
 def select_edit_chombo_value(update, context):
   update.message.reply_text(
     '`Please enter amount of points to deduct when someone chombo\nNote that the value will not be split among other players.`',
@@ -290,6 +308,7 @@ def select_edit_chombo_value(update, context):
 
   return SET_CHOMBO_VALUE
 
+@catch_error
 def select_edit_chombo_payment_option(update, context):
   reply_keyboard = [['Payment to all', 'Flat deduction']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -303,6 +322,7 @@ def select_edit_chombo_payment_option(update, context):
 
   return SET_CHOMBO_PAYMENT_OPTION
 
+@catch_error
 def set_chombo_payment_option(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -311,6 +331,7 @@ def set_chombo_payment_option(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def set_chombo_value(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -319,6 +340,7 @@ def set_chombo_value(update, context):
 
   return return_select_edit_settings(update, user_data)
 
+@catch_error
 def select_edit_done(update, context):
   user_data = context.user_data
   reply_keyboard = [['Start game', 'Discard game']]
@@ -332,6 +354,7 @@ def select_edit_done(update, context):
 
   return CONFIRM_GAME_SETTINGS
 
+@catch_error
 def set_oka(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -351,6 +374,7 @@ def return_next_command(update, text):
 
   return SELECT_NEXT_COMMAND
 
+@catch_error
 def start_game(update, context):
   user_data = context.user_data
 
@@ -377,6 +401,7 @@ def start_game(update, context):
 
   return return_next_command(update, func.print_game_settings_info(user_data) +'\n'+ func.print_current_game_state(user_data['hands'], player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
 
+@catch_error
 def set_player_score(update, context):
   user_data = context.user_data
   text = int(update.message.text)
@@ -401,6 +426,7 @@ def set_player_score(update, context):
 
   return SET_LEFTOVER_POOL
 
+@catch_error
 def set_leftover_pool(update, context):
   user_data = context.user_data
   text = int(update.message.text)
@@ -418,6 +444,7 @@ def set_leftover_pool(update, context):
 
   return SELECT_HAVE_PENALTY
 
+@catch_error
 def discard_game_settings(update, context):
   user_data = context.user_data
   update.message.reply_text("`Game have been discarded.`",
@@ -426,6 +453,7 @@ def discard_game_settings(update, context):
   user_data.clear()
   return ConversationHandler.END
 
+@catch_error
 def add_new_hand(update, context):
   user_data = context.user_data
   player_names = func.get_all_player_name(user_data['players'])
@@ -463,6 +491,7 @@ def return_4_player_done_option(update, player_names, return_state, text):
 
   return return_state
 
+@catch_error
 def set_hand_outcome(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -498,6 +527,7 @@ def return_set_han(update):
 
   return SET_HAN
 
+@catch_error
 def set_winner(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -514,6 +544,7 @@ def set_winner(update, context):
 
   return return_4_player_option(update, player_names, SET_LOSER, '`Who dealt in?`')
 
+@catch_error
 def set_loser(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -543,6 +574,7 @@ def return_set_fu(update, fu_list, text):
 
   return SET_FU
 
+@catch_error
 def set_han(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -557,6 +589,7 @@ def set_han(update, context):
 
   return return_save_discard_hand_option(update, new_hand, player_names)
 
+@catch_error
 def set_fu(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -570,6 +603,7 @@ def set_fu(update, context):
   new_hand['fu'] = text
   return return_save_discard_hand_option(update, new_hand, player_names)
 
+@catch_error
 def set_draw_tenpai(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -589,6 +623,7 @@ def set_draw_tenpai(update, context):
     + func.print_select_names(player_names, tenpai)
     + '`\nWho is in Tenpai?`')
 
+@catch_error
 def set_draw_tenpai_done(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -597,6 +632,7 @@ def set_draw_tenpai_done(update, context):
 
   return return_save_discard_hand_option(update, new_hand, player_names)
 
+@catch_error
 def set_riichi(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -628,6 +664,7 @@ def return_save_discard_hand_option(update, new_hand, player_names):
 
   return PROCESS_HAND
 
+@catch_error
 def set_riichi_done(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -642,6 +679,7 @@ def set_riichi_done(update, context):
     reply_markup=markup)
   return SET_HAND_OUTCOME
 
+@catch_error
 def set_chombo(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -661,6 +699,7 @@ def set_chombo(update, context):
     + func.print_select_names(player_names, chombo)
     + '`\nWho Chombo?`')
 
+@catch_error
 def set_chombo_done(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -677,6 +716,7 @@ def set_chombo_done(update, context):
 
   return PROCESS_HAND
 
+@catch_error
 def discard_hand(update, context):
   user_data = context.user_data
   hands = user_data['hands']
@@ -685,6 +725,7 @@ def discard_hand(update, context):
 
   return return_next_command(update, '`Hand have been discarded\n\n`' + func.print_current_game_state(hands, player_names, user_data['initial value']) +'`Please select an option:`')
 
+@catch_error
 def save_hand(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
@@ -706,6 +747,7 @@ def save_hand(update, context):
     + '`\n`' + func.print_score_change(new_hand, player_names)
     + '`\n\nPlease select an option:`')
 
+@catch_error
 def end_game(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -717,6 +759,7 @@ def end_game(update, context):
 
   return CONFIRM_GAME_END
 
+@catch_error
 def confirm_game_end(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -737,6 +780,7 @@ def return_to_next_command(update, context):
     func.print_current_game_state(hands, player_names, user_data['initial value'])
     + '`\n\nPlease select an option:`')
 
+@catch_error
 def select_have_penalty(update, context):
   user_data = context.user_data
   player_names = func.get_all_player_name(user_data['players'])
@@ -744,6 +788,7 @@ def select_have_penalty(update, context):
 
   return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, func.print_penalty(penalty, player_names) + '`Who has a penalty?`')
 
+@catch_error
 def set_penalty_player(update, context):
   user_data = context.user_data
   text = update.message.text
@@ -764,6 +809,7 @@ def set_penalty_player(update, context):
 
   return SET_PENALTY_VALUE
 
+@catch_error
 def set_penalty_value(update, context):
   user_data = context.user_data
   player_names = func.get_all_player_name(user_data['players'])
@@ -776,6 +822,7 @@ def set_penalty_value(update, context):
 
   return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, func.print_penalty(penalty, player_names) + '`Who has a penalty?`')
 
+@catch_error
 def confirm_penalty_done(update, context):
   user_data = context.user_data
   reply_keyboard = [['Yes', 'No']]
@@ -791,6 +838,7 @@ def confirm_penalty_done(update, context):
 
   return COMPLETE_GAME
 
+@catch_error
 def save_complete_game(update, context):
   user_data = context.user_data
   players = user_data['players']
@@ -815,6 +863,7 @@ def save_complete_game(update, context):
   user_data.clear()
   return ConversationHandler.END
 
+@catch_error
 def confirm_result_only_game(update, context):
   user_data = context.user_data
   players = user_data['players']
@@ -831,6 +880,7 @@ def confirm_result_only_game(update, context):
 
   return SAVE_RESULT_ONLY
 
+@catch_error
 def save_result_only_game(update, context):
   user_data = context.user_data
   players = user_data['players']
@@ -847,11 +897,13 @@ def save_result_only_game(update, context):
   user_data.clear()
   return ConversationHandler.END
 
+@catch_error
 def discard_result_only_game(update, context):
   update.message.reply_text("`Game settings have been discarded`", parse_mode=ParseMode.MARKDOWN_V2)
   user_data.clear()
   return ConversationHandler.END
 
+@catch_error
 def delete_last_hand(update, context):
   user_data = context.user_data
   hands = user_data['hands']
