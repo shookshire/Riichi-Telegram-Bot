@@ -179,3 +179,5 @@ TSUMO_VALUE = {
   '12': 60,
   '13': 80
 }
+
+SEAT_NAME = ['East', 'South', 'West', 'North']

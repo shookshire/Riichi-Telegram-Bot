@@ -13,7 +13,7 @@ def connect_db():
 	  user=DB_CONFIG['db_user'],
 	  password=DB_CONFIG['db_password']
 	)
-
+	
 def get_player_by_name(name):
 	conn = connect_db()
 	cur = conn.cursor()

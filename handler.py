@@ -45,7 +45,7 @@ def start_input_game_result(update, context):
   user_data['final pool'] = 0
 
   update.message.reply_text(
-    '`Please enter 1st player name or id number:`',
+    '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
@@ -56,7 +56,7 @@ def set_recorded_game(update, context):
   user_data['recorded'] = True
 
   update.message.reply_text(
-    '`Please enter 1st player name or id number:`',
+    '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
@@ -66,11 +66,10 @@ def set_not_recorded_Game(update, context):
   user_data['recorded'] = False
 
   update.message.reply_text(
-    '`Please enter 1st player name:`',
+    '`Please enter {} player name:`'.format(SEAT_NAME[0]),
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
-
 
 def set_player_by_name(update, context):
   user_data = context.user_data
@@ -96,17 +95,17 @@ def set_player_by_name(update, context):
 
   if len(players) < 4:
     update.message.reply_text("`Player Name {} entered\n"
-                              "Please enter next player's name`".format(func.get_player_name(player_info)),
+                              "Please enter {} player's name`".format(func.get_player_name(player_info), SEAT_NAME[len(players)]),
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
   
   reply_keyboard = [['Re-enter Names', 'Proceed']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
   update.message.reply_text(
-    "`Player 1: {}\n"
-    "Player 2: {}\n"
-    "Player 3: {}\n"
-    "Player 4: {}\n\n"
+    "`East : {}\n"
+    "South: {}\n"
+    "West : {}\n"
+    "North: {}\n\n"
     "Is this ok?`".
     format(func.get_player_name(players[0]), 
       func.get_player_name(players[1]), 
@@ -139,17 +138,17 @@ def set_player_by_id(update, context):
 
   if len(players) < 4:
     update.message.reply_text("`Player Name {} entered\n"
-                                "Please enter next player's name`".format(func.get_player_name(player_info)),
+                                "Please enter {} player's name`".format(func.get_player_name(player_info), SEAT_NAME[len(players)]),
     													parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
   
   reply_keyboard = [['Re-enter Names', 'Proceed']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
   update.message.reply_text(
-    "`Player 1: {}\n"
-    "Player 2: {}\n"
-    "Player 3: {}\n"
-    "Player 4: {}\n\n"
+    "`East : {}\n"
+    "South: {}\n"
+    "West : {}\n"
+    "North: {}\n\n"
     "Is this ok?`".
     format(func.get_player_name(players[0]), 
       func.get_player_name(players[1]), 
@@ -167,7 +166,7 @@ def confirm_player_name(update, context):
     user_data['players'] = []
 
     update.message.reply_text(
-      '`Please enter 1st player name or id number:`',
+      '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
       parse_mode=ParseMode.MARKDOWN_V2)
 
     return SET_PLAYER_NAME
