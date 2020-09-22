@@ -49,7 +49,8 @@ def main():
     entry_points=[
       CommandHandler('help', handler.helper),
       CommandHandler('start', handler.start_new_game),
-      CommandHandler('record', handler.start_input_game_result)
+      CommandHandler('record', handler.start_input_game_result),
+      CommandHandler('get_telegram_id', handler.get_telegram_id)
     ],
 
     states={

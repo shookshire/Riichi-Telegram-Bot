@@ -17,8 +17,16 @@ from log_helper import catch_error
 def helper(update, context):
 
   update.message.reply_text(
-    "/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SMCRM server.\n/record : Save final game score to SMCRM server")
+    "/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SMCRM server.\n\n"
+    +"/record : Save final game score to SMCRM server.\n\n"
+    +"/get_telegram_id: Returns your telegram id number.")
 
+  return ConversationHandler.END
+
+@catch_error
+def get_telegram_id(update, context):
+
+  update.message.reply_text('telegram id: {}'.format(update.message.chat.id))
   return ConversationHandler.END
 
 @catch_error

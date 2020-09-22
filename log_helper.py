@@ -3,8 +3,8 @@ from logging.handlers import TimedRotatingFileHandler
 from functools import wraps
 
 logname = "logs/log_file.log"
-handler = TimedRotatingFileHandler(logname, when="M", interval=1)
-handler.suffix = "%Y%m%d%H%M%S"
+handler = TimedRotatingFileHandler(logname, when="W0", interval=1)
+handler.suffix = "%Y%m%d_%H%M%S"
 
 #Create and configure logger 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', 
