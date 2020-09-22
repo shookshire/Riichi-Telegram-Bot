@@ -48,6 +48,7 @@ psql riichi <your_db_username>
 
 ```
 bot_token: Token for the telegram bot obtained form bot father
+
 db_host: IP address of the database, if the database is ran locally, put localhost
 db_database: Name of the database eg. riichi
 db_user: <your_db_username>

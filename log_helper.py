@@ -1,14 +1,17 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from functools import wraps
+from config import LOGGER_CONFIG
 
 logname = "logs/log_file.log"
 handler = TimedRotatingFileHandler(logname, when="W0", interval=1)
 handler.suffix = "%Y%m%d_%H%M%S"
 
+logging_level = logging.INFO if LOGGER_CONFIG['level'] == 'INFO' else logging.WARNING
+
 #Create and configure logger 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', 
-                    level=logging.WARNING,
+                    level=logging_level,
                     handlers=[handler])
 
 #Creating an object 
