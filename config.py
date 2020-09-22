@@ -10,5 +10,5 @@ DB_CONFIG = {
 }
 
 LOGGER_CONFIG = {
-	'level': 'WARNING' #'WARNING' or 'INFO'
+  'level': 'WARNING' #'WARNING' or 'INFO'
 }
