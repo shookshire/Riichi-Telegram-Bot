@@ -5,6 +5,13 @@
 #### Version 1.1
 
 ```
+1. Added retrieving  of telegram id
+2. Added logging
+```
+
+#### Version 1.1
+
+```
 1. Added sending private messge to SMCRM users upon game completion
 2. Added submitting of final score only
 3. Added help
