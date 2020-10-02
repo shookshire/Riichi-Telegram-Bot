@@ -201,7 +201,7 @@ def main():
       ]
     },
 
-    fallbacks=[]
+    fallbacks=[CommandHandler('quit', handler.quit)]
   )
 
   dp.add_handler(conv_handler)

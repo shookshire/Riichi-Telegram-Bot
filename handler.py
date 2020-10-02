@@ -1035,3 +1035,14 @@ def delete_last_hand(update, context):
     hands.pop()
 
   return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+
+@catch_error
+def quit(update, context):
+  user_data = context.user_data
+
+  if 'id' in user_data and user_data['id']:
+    db.quit_game(user_data['id'])
+
+  update.message.reply_text("`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)
+  user_data.clear()
+  return ConversationHandler.END

@@ -172,3 +172,17 @@ def delete_last_hand(game_id, hand_num):
 
 	return True
 
+def quit_game(game_id):
+	conn = connect_db()
+	cur = conn.cursor()
+
+	sql = "UPDATE Game SET status='quit' where gid={}".format(game_id)
+
+	logger.info(sql)
+	cur.execute(sql)
+
+	conn.commit()
+	cur.close()
+	conn.close()
+
+	return True
