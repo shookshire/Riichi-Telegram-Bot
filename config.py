@@ -1,12 +1,13 @@
 BOT_CONFIG = {
-  'bot_token': '1306022391:AAHPU_jdsROozle-r28LtQLbYB7TaUHVT1I'
+  'bot_token': '',
+  'timeout': 60*60*24
 }
 
 DB_CONFIG = {
-  'db_host':"localhost",
-  'db_database':"riichi",
-  'db_user':"postgres",
-  'db_password':"Asdf1234"
+  'db_host':"",
+  'db_database':"",
+  'db_user':"",
+  'db_password':""
 }
 
 LOGGER_CONFIG = {

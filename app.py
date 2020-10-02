@@ -198,10 +198,14 @@ def main():
       SAVE_RESULT_ONLY: [
         MessageHandler(Filters.regex('^Yes$'), handler.save_result_only_game),
         MessageHandler(Filters.regex('^No$'), handler.discard_result_only_game)
+      ],
+      ConversationHandler.TIMEOUT: [
+        MessageHandler(Filters.text | Filters.command, handler.timeout)
       ]
     },
 
-    fallbacks=[CommandHandler('quit', handler.quit)]
+    fallbacks=[CommandHandler('quit', handler.quit)],
+    conversation_timeout=BOT_CONFIG['timeout']
   )
 
   dp.add_handler(conv_handler)

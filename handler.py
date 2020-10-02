@@ -1046,3 +1046,15 @@ def quit(update, context):
   update.message.reply_text("`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)
   user_data.clear()
   return ConversationHandler.END
+
+@catch_error
+def timeout(update, context):
+  user_data = context.user_data
+  print('timeout')
+
+  if 'id' in user_data and user_data['id']:
+    db.timeout(user_data['id'])
+
+  update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
+  user_data.clear()
+  return ConversationHandler.END
