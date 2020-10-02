@@ -15,6 +15,30 @@ def connect_db():
 	  password=DB_CONFIG['db_password']
 	)
 
+def get_all_venue():
+	conn = connect_db()
+	cur = conn.cursor()
+
+	cur.execute("SELECT distinct h.vid, vname FROM venue h inner join mode e on (h.vid = e.vid) where status='open' and now() between start_time and end_time")
+	row = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	return [{'vid': r[0], 'name': r[1]} for r in row]
+
+def get_mode_by_vid(vid):
+	conn = connect_db()
+	cur = conn.cursor()
+
+	cur.execute("SELECT mid, mname FROM mode where vid='{}' and now() between start_time and end_time".format(vid))
+	row = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	return [{'mid': r[0], 'name': r[1]} for r in row]
+
 def get_player_by_name(name):
 	conn = connect_db()
 	cur = conn.cursor()
@@ -48,8 +72,8 @@ def get_player_by_id(pid):
 def set_new_game(game):
 	pid = func.get_all_player_id(game['players'])
 
-	sql = "INSERT INTO Game (start_time, initial_value, p1_id, p2_id, p3_id, p4_id, aka, uma_p1, uma_p2, uma_p3, uma_p4, oka) VALUES"
-	sql += "(NOW(), {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}) returning gid, to_char(start_time, 'DD-MM-YYYY')".format(game['initial value'], pid[0], pid[1], pid[2], pid[3], game['aka'], game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3], game['oka'])
+	sql = "INSERT INTO Game (start_time, initial_value, p1_id, p2_id, p3_id, p4_id, aka, uma_p1, uma_p2, uma_p3, uma_p4, oka, vid, mid) VALUES"
+	sql += "(NOW(), {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, '{}', {}) returning gid, to_char(start_time, 'DD-MM-YYYY')".format(game['initial value'], pid[0], pid[1], pid[2], pid[3], game['aka'], game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3], game['oka'], game['venue']['vid'], game['mode']['mid'])
 
 	logger.info(sql)
 
@@ -92,20 +116,20 @@ def set_new_hand(hand, game_id, player_id):
 	cur = conn.cursor()
 
 	sql = "INSERT INTO Hand (gid, hand_num, wind, round_num, honba, pool, outcome, han, fu, value) VALUES"
-	sql += "({}, {}, '{}', {}, {}, {}, '{}', {}, {}, {}) returning hid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['pool'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
+	sql += "({}, {}, '{}', {}, {}, {}, '{}', {}, {}, {}) returning vid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['pool'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
 
 	logger.info(sql)
 
 	cur.execute(sql)
-	hid = cur.fetchone()[0]
+	vid = cur.fetchone()[0]
 
 	oya = [False]*4
 	oya[hand['round num'] - 1] = True
 	ioutcome = func.get_individual_outcome(hand)
 
 	for i in range(4):
-		sql = "INSERT INTO IndividualHand (gid, hid, initial_pos, pid, position, dealer, outcome, tenpai, riichi, start_score, end_score, score_change, chombo) VALUES"
-		sql += "({}, {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {})".format(game_id, hid, i+1, player_id[i], hand['position'][i], oya[i], ioutcome[i], hand['tenpai'][i], hand['riichi'][i], hand['initial score'][i], hand['final score'][i], hand['score change'][i], hand['chombo'][i])
+		sql = "INSERT INTO IndividualHand (gid, vid, initial_pos, pid, position, dealer, outcome, tenpai, riichi, start_score, end_score, score_change, chombo) VALUES"
+		sql += "({}, {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {})".format(game_id, vid, i+1, player_id[i], hand['position'][i], oya[i], ioutcome[i], hand['tenpai'][i], hand['riichi'][i], hand['initial score'][i], hand['final score'][i], hand['score change'][i], hand['chombo'][i])
 
 		logger.info(sql)
 

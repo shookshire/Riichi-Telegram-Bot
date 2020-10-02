@@ -58,6 +58,16 @@ def main():
         MessageHandler(Filters.regex('^Yes$'), handler.set_recorded_game),
         MessageHandler(Filters.regex('^No$'), handler.set_not_recorded_Game)
       ],
+      SET_VENUE: [
+        MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Quit$')), handler.set_game_venue)
+      ],
+      SET_MODE: [
+        MessageHandler(Filters.text & ~(Filters.command | Filters.regex('^Quit$')), handler.set_game_mode)
+      ],
+      CONFIRM_VENUE_MODE: [
+        MessageHandler(Filters.regex('^Confirm$') & ~(Filters.command | Filters.regex('^Quit$')), handler.confirm_venue_mode),
+        MessageHandler(Filters.regex('^Exit$') & ~(Filters.command | Filters.regex('^Quit$')), handler.exit_venue_mode)
+      ],
       SET_PLAYER_NAME: [
         MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
                        handler.set_player_by_name),

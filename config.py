@@ -1,12 +1,12 @@
 BOT_CONFIG = {
-  'bot_token': ''
+  'bot_token': '1306022391:AAHPU_jdsROozle-r28LtQLbYB7TaUHVT1I'
 }
 
 DB_CONFIG = {
-  'db_host':"",
-  'db_database':"",
-  'db_user':"",
-  'db_password':""
+  'db_host':"localhost",
+  'db_database':"riichi",
+  'db_user':"postgres",
+  'db_password':"Asdf1234"
 }
 
 LOGGER_CONFIG = {

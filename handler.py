@@ -67,11 +67,18 @@ def set_recorded_game(update, context):
   user_data = context.user_data
   user_data['recorded'] = True
 
-  update.message.reply_text(
-    '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
-    parse_mode=ParseMode.MARKDOWN_V2)
+  venue_list = db.get_all_venue()
+  user_data['venue_list'] = venue_list
 
-  return SET_PLAYER_NAME
+  reply_keyboard = [[h['name'] for h in venue_list[i:i+2]] for i in range(0, len(venue_list), 2)]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    '`Please select the venue of this game`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SET_VENUE
 
 @catch_error
 def set_not_recorded_Game(update, context):
@@ -83,6 +90,88 @@ def set_not_recorded_Game(update, context):
     parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
+
+@catch_error
+def set_game_venue(update, context):
+  user_data = context.user_data
+  text = update.message.text
+  venue_list = user_data['venue_list']
+
+  check = list(filter(lambda h: h['name'] == text, venue_list))
+  if len(check) == 0:
+
+    reply_keyboard = [[h['name'] for h in venue_list[i:i+2]] for i in range(0, len(venue_list), 2)]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+    '`Invalid venue name inputted. Please select a valid venue name`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+    return SET_VENUE
+
+  venue = check[0]
+  user_data['venue'] = venue
+
+  mode_list = db.get_mode_by_vid(venue['vid'])
+  user_data['mode_list'] = mode_list
+
+  reply_keyboard = [[h['name'] for h in mode_list[i:i+2]] for i in range(0, len(mode_list), 2)]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+  '`Please select the mode for this game`',
+  parse_mode=ParseMode.MARKDOWN_V2,
+  reply_markup=markup)
+
+  return SET_MODE
+
+@catch_error
+def set_game_mode(update, context):
+  user_data = context.user_data
+  text = update.message.text
+  mode_list = user_data['mode_list']
+
+  check = list(filter(lambda h: h['name'] == text, mode_list))
+  if len(check) == 0:
+    reply_keyboard = [[h['name'] for h in mode_list[i:i+2]] for i in range(0, len(mode_list), 2)]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+    '`Invalid mode inputted. Please select a valid mode name`',
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+    return SET_MODE
+
+  mode = check[0]
+  user_data['mode'] = mode
+
+  reply_keyboard = [['Confirm', 'Exit']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+  '`Venue: {}\nMode: {}\n\nIs this correct?`'.format(user_data['venue']['name'], user_data['mode']['name']),
+  parse_mode=ParseMode.MARKDOWN_V2,
+  reply_markup=markup)
+
+  return CONFIRM_VENUE_MODE
+
+@catch_error
+def confirm_venue_mode(update, context):
+  update.message.reply_text(
+    '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
+    parse_mode=ParseMode.MARKDOWN_V2)
+
+  return SET_PLAYER_NAME
+
+@catch_error
+def exit_venue_mode(update, context):
+  user_data = context.user_data
+
+  update.message.reply_text("`Game settings have been discarded`", parse_mode=ParseMode.MARKDOWN_V2)
+  user_data.clear()
+  return ConversationHandler.END
 
 @catch_error
 def set_player_by_name(update, context):
