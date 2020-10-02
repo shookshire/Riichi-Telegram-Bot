@@ -19,7 +19,8 @@ def helper(update, context):
   update.message.reply_text(
     "/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SMCRM server.\n\n"
     +"/record : Save final game score to SMCRM server.\n\n"
-    +"/get_telegram_id: Returns your telegram id number.")
+    +"/get_telegram_id: Returns your telegram id number.\n\n"
+    +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 
   return ConversationHandler.END
 
@@ -1050,11 +1051,24 @@ def quit(update, context):
 @catch_error
 def timeout(update, context):
   user_data = context.user_data
-  print('timeout')
 
   if 'id' in user_data and user_data['id']:
-    db.timeout(user_data['id'])
+    players = user_data['players']
+    player_names = func.get_all_player_name(user_data['players'])
 
-  update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
+    func.process_game(user_data)
+
+    db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
+
+    final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
+
+    update.message.reply_text("`Game have timeout and is assumed to be completed\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+    
+    for player in players:
+      if not player['telegram_id'] is None:
+        push_msg.send_msg(func.print_game_confirmation(user_data['id'], player_names), player['telegram_id'])
+  else:
+    update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
+
   user_data.clear()
   return ConversationHandler.END

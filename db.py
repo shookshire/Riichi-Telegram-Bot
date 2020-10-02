@@ -116,20 +116,20 @@ def set_new_hand(hand, game_id, player_id):
 	cur = conn.cursor()
 
 	sql = "INSERT INTO Hand (gid, hand_num, wind, round_num, honba, pool, outcome, han, fu, value) VALUES"
-	sql += "({}, {}, '{}', {}, {}, {}, '{}', {}, {}, {}) returning vid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['pool'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
+	sql += "({}, {}, '{}', {}, {}, {}, '{}', {}, {}, {}) returning hid".format(game_id, hand['hand num'], hand['wind'], hand['round num'], hand['honba'], hand['pool'], hand['outcome'], hand['han'], hand['fu'], hand['value'])
 
 	logger.info(sql)
 
 	cur.execute(sql)
-	vid = cur.fetchone()[0]
+	hid = cur.fetchone()[0]
 
 	oya = [False]*4
 	oya[hand['round num'] - 1] = True
 	ioutcome = func.get_individual_outcome(hand)
 
 	for i in range(4):
-		sql = "INSERT INTO IndividualHand (gid, vid, initial_pos, pid, position, dealer, outcome, tenpai, riichi, start_score, end_score, score_change, chombo) VALUES"
-		sql += "({}, {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {})".format(game_id, vid, i+1, player_id[i], hand['position'][i], oya[i], ioutcome[i], hand['tenpai'][i], hand['riichi'][i], hand['initial score'][i], hand['final score'][i], hand['score change'][i], hand['chombo'][i])
+		sql = "INSERT INTO IndividualHand (gid, hid, initial_pos, pid, position, dealer, outcome, tenpai, riichi, start_score, end_score, score_change, chombo) VALUES"
+		sql += "({}, {}, {}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {})".format(game_id, hid, i+1, player_id[i], hand['position'][i], oya[i], ioutcome[i], hand['tenpai'][i], hand['riichi'][i], hand['initial score'][i], hand['final score'][i], hand['score change'][i], hand['chombo'][i])
 
 		logger.info(sql)
 
@@ -141,11 +141,13 @@ def set_new_hand(hand, game_id, player_id):
 
 	return True
 
-def set_complete_game(game_id, score, position, penalty):
+def set_complete_game(game_id, score, position, penalty, timeout=False):
 	conn = connect_db()
 	cur = conn.cursor()
 
-	sql = "UPDATE Game SET status='complete', end_time=NOW(), p1_score={}, p2_score={}, p3_score={}, p4_score={}, p1_position={}, p2_position={}, p3_position={}, p4_position={}, p1_penalty={}, p2_penalty={}, p3_penalty={}, p4_penalty={} WHERE gid={}".format(score[0], score[1], score[2], score[3], position[0], position[1], position[2], position[3], penalty[0], penalty[1], penalty[2], penalty[3], game_id)
+	status = 'complete' if not timeout else 'timeout'
+
+	sql = "UPDATE Game SET status='{}', end_time=NOW(), p1_score={}, p2_score={}, p3_score={}, p4_score={}, p1_position={}, p2_position={}, p3_position={}, p4_position={}, p1_penalty={}, p2_penalty={}, p3_penalty={}, p4_penalty={} WHERE gid={}".format(status, score[0], score[1], score[2], score[3], position[0], position[1], position[2], position[3], penalty[0], penalty[1], penalty[2], penalty[3], game_id)
 
 	logger.info(sql)
 
