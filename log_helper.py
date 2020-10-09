@@ -3,7 +3,7 @@ from logging.handlers import TimedRotatingFileHandler
 from functools import wraps
 from config import LOGGER_CONFIG
 
-logname = "logs/log_file.log"
+logname = "./logs/log_file.log"
 handler = TimedRotatingFileHandler(logname, when="W0", interval=1)
 handler.suffix = "%Y%m%d_%H%M%S"
 
