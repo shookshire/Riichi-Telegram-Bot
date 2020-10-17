@@ -41,7 +41,7 @@ def start_new_game(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-    "`Please select if this game will be recorded by SMCRM:\nDo note that only games played by 4 registered SMCRM players can be recorded`",
+    "`Please select if this game will be recorded by SgRiichi:\nDo note that only games played by 4 registered SgRiichi players can be recorded`",
     parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
 
