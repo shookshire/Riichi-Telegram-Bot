@@ -17,8 +17,9 @@ from log_helper import catch_error
 def helper(update, context):
 
   update.message.reply_text(
-    "/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SMCRM server.\n\n"
-    +"/record : Save final game score to SMCRM server.\n\n"
+    "For registration and other queries, please contact @MrFeng\n\n"
+    +"/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
+    +"/record : Save final game score to SgRiichi server.\n\n"
     +"/get_telegram_id: Returns your telegram id number.\n\n"
     +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 

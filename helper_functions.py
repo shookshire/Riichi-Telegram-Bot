@@ -68,6 +68,8 @@ def process_chombo_hand(hand, chombo_value, chombo_option):
 		for i in range(len(chombo)):
 			hand['final score'][i] += int(value_distributed/4)
 
+	hand['position'] = get_position(hand['final score'])
+
 def process_hand(hand, kiriage):
 	score_change, pool = get_total_score_change(hand, kiriage)
 	hand['score change'] = score_change
