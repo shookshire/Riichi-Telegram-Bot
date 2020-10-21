@@ -980,7 +980,7 @@ def save_complete_game(update, context):
   
   for player in players:
     if not player['telegram_id'] is None:
-      push_msg.send_msg(func.print_game_confirmation(user_data['id'], player_names), player['telegram_id'])
+      push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
 
   user_data.clear()
   return ConversationHandler.END
@@ -1008,13 +1008,17 @@ def save_result_only_game(update, context):
   players = user_data['players']
   player_names = func.get_all_player_name(user_data['players'])
 
+  func.process_result_only(user_data)
+
   gid = db.set_result_only_game(user_data)
 
   update.message.reply_text("`Game have been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
 
+  final_score_text = func.print_end_game_result(gid, player_names, user_data['final score'], user_data['position'])
+
   for player in players:
     if not player['telegram_id'] is None:
-      push_msg.send_msg(func.print_game_confirmation(gid, player_names), player['telegram_id'])
+      push_msg.send_msg(func.print_game_confirmation(gid, final_score_text), player['telegram_id'])
 
   user_data.clear()
   return ConversationHandler.END
@@ -1067,7 +1071,7 @@ def timeout(update, context):
     
     for player in players:
       if not player['telegram_id'] is None:
-        push_msg.send_msg(func.print_game_confirmation(user_data['id'], player_names), player['telegram_id'])
+        push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
   else:
     update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
 

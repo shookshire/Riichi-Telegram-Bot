@@ -84,6 +84,9 @@ def process_game(game):
 	game['final score'] = game['hands'][-1]['final score'] if len(game['hands']) else [game['initial value']]*4
 	game['position'] = game['hands'][-1]['position'] if len(game['hands']) else [2.5,2.5,2.5,2.5]
 
+def process_result_only(game):
+	position = get_position(game['final score'])
+	game['position'] = position
 
 def get_position(score):
 	position = [0.5, 0.5, 0.5, 0.5]
@@ -443,9 +446,10 @@ def print_result_only_game_settings(game):
 
   return text
 
-def print_game_confirmation(gid, player_names):
-	text = 'Hi! A game have been recorded with you as a participant.\n\nGame id: {}\n\n'.format(gid)
-	text += 'Players: {}, {}, {}, {}\n\nIf you did not participate in this game please sound out to SMCRM admins'.format(player_names[0], player_names[1], player_names[2], player_names[3])
+def print_game_confirmation(gid, final_score_text):
+	text = '`Hi! A game have been recorded with you as a participant.\n\n`'
+	text += final_score_text
+	text += '`\n\nIf you did not participate in this game please sound out to SgRiichi admins`'
 
 	return text
 
