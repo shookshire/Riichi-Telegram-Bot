@@ -370,7 +370,7 @@ def select_edit_uma(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-    '`Please select options for oka:`',
+    '`Please select options for uma:`',
     parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
 
