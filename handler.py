@@ -196,7 +196,7 @@ def set_player_by_name(update, context):
   if user_data['recorded']:
     if DB_CONFIG['in_use']:
       player_info = db.get_player_by_name(name)
-    elif googlesheet['in_use']:
+    elif SPREADSHEET_CONFIG['in_use']:
       player_info = gfunc.check_valid_name_from_list(name, user_data['player_list'])
 
     if player_info is None:
@@ -1037,7 +1037,12 @@ def save_result_only_game(update, context):
 
   func.process_result_only(user_data)
 
-  gid = db.set_result_only_game(user_data)
+  if user_data['recorded']:
+    if DB_CONFIG['in_use']:
+      gid = db.set_result_only_game(user_data)
+    elif SPREADSHEET_CONFIG['in_use']:
+      update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
+      gid = googlesheet.set_record_game(user_data)
 
   update.message.reply_text("`Game have been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
 
@@ -1064,7 +1069,8 @@ def delete_last_hand(update, context):
 
   if len(hands) > 0:
     last_hand_num = hands[-1]['hand num']
-    db.delete_last_hand(user_data['id'], last_hand_num)
+    if DB_CONFIG['in_use']:
+      db.delete_last_hand(user_data['id'], last_hand_num)
     hands.pop()
 
   return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
@@ -1073,7 +1079,7 @@ def delete_last_hand(update, context):
 def quit(update, context):
   user_data = context.user_data
 
-  if 'id' in user_data and user_data['id']:
+  if 'id' in user_data and user_data['id'] and DB_CONFIG['in_use']:
     db.quit_game(user_data['id'])
 
   update.message.reply_text("`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)
@@ -1090,7 +1096,13 @@ def timeout(update, context):
 
     func.process_game(user_data)
 
-    db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
+    if user_data['recorded']:
+      if DB_CONFIG['in_use']:
+        db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
+      elif SPREADSHEET_CONFIG['in_use']:
+        update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
+        gid = googlesheet.set_game(user_data, True)
+        user_data['id'] = gid
 
     final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
 
