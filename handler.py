@@ -9,9 +9,12 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 
 import push_msg
 import helper_functions as func
+import googlesheet_helper_func as gfunc
 import db
+import googlesheet
 from constants import *
 from log_helper import catch_error
+from config import DB_CONFIG, SPREADSHEET_CONFIG
 
 @catch_error
 def helper(update, context):
@@ -69,7 +72,10 @@ def set_recorded_game(update, context):
   user_data = context.user_data
   user_data['recorded'] = True
 
-  venue_list = db.get_all_venue()
+  if DB_CONFIG['in_use']:
+    venue_list = db.get_all_venue()
+  elif SPREADSHEET_CONFIG['in_use']:
+    venue_list = googlesheet.get_venue_list()
   user_data['venue_list'] = venue_list
 
   reply_keyboard = [[h['name'] for h in venue_list[i:i+2]] for i in range(0, len(venue_list), 2)]
@@ -115,7 +121,10 @@ def set_game_venue(update, context):
   venue = check[0]
   user_data['venue'] = venue
 
-  mode_list = db.get_mode_by_vid(venue['vid'])
+  if DB_CONFIG['in_use']:
+    mode_list = db.get_mode_by_vid(venue['vid'])
+  elif SPREADSHEET_CONFIG['in_use']:
+    mode_list = googlesheet.get_mode_list(venue['vid'])
   user_data['mode_list'] = mode_list
 
   reply_keyboard = [[h['name'] for h in mode_list[i:i+2]] for i in range(0, len(mode_list), 2)]
@@ -181,15 +190,21 @@ def set_player_by_name(update, context):
   text = update.message.text
   name = func.handle_name(text)
   players = user_data['players']
+  if not 'player_list' in user_data:
+    user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
-    player_info = db.get_player_by_name(name)
+    if DB_CONFIG['in_use']:
+      player_info = db.get_player_by_name(name)
+    elif googlesheet['in_use']:
+      player_info = gfunc.check_valid_name_from_list(name, user_data['player_list'])
+
     if player_info is None:
       update.message.reply_text("`Please enter a valid name`", 
         parse_mode=ParseMode.MARKDOWN_V2)
       return SET_PLAYER_NAME
   else:
-    player_info = {'id': 0, 'name': name, 'telegram_id': None}
+    player_info = {'pid': 0, 'name': name, 'telegram_id': None}
 
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
@@ -225,9 +240,15 @@ def set_player_by_id(update, context):
   user_data = context.user_data
   text = update.message.text
   players = user_data['players']
+  if not 'player_list' in user_data:
+    user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
-    player_info = db.get_player_by_id(text)
+    if DB_CONFIG['in_use']:
+      player_info = db.get_player_by_id(text)
+    elif SPREADSHEET_CONFIG['in_use']:
+      player_info = gfunc.check_valid_id_from_list(int(text), user_data['player_list'])
+
     if player_info is None:
       update.message.reply_text("`Please enter a valid id`",
         parse_mode=ParseMode.MARKDOWN_V2)
@@ -510,13 +531,14 @@ def start_game(update, context):
 
     return SET_PLAYER_SCORE
 
-  if user_data['recorded']:
+  if user_data['recorded'] and DB_CONFIG['in_use']:
     gid, start_date = db.set_new_game(user_data)
     user_data['id'] = gid
     user_data['date'] = start_date
   else:
     user_data['id'] = 0
     user_data['date'] = datetime.now().strftime("%d-%m-%Y")
+    user_data['time'] = datetime.now().strftime('%M:%S.%f')[:-4]
 
   user_data['hands'] = []
   user_data['penalty'] = [0,0,0,0]
@@ -858,7 +880,7 @@ def save_hand(update, context):
   else:
     func.process_hand(new_hand, user_data['kiriage'])
 
-  if user_data['recorded']:
+  if user_data['recorded'] and DB_CONFIG['in_use']:
     db.set_new_hand(new_hand, user_data['id'], func.get_all_player_id(user_data['players']))
 
   user_data['hands'].append(new_hand)
@@ -972,7 +994,12 @@ def save_complete_game(update, context):
   func.process_game(user_data)
 
   if user_data['recorded']:
-    db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
+    if DB_CONFIG['in_use']:
+      db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
+    elif SPREADSHEET_CONFIG['in_use']:
+      update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
+      gid = googlesheet.set_game(user_data)
+      user_data['id'] = gid
 
   final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
 

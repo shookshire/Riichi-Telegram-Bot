@@ -4,10 +4,16 @@ BOT_CONFIG = {
 }
 
 DB_CONFIG = {
+	'in_use': False,
   'db_host':"",
   'db_database':"",
   'db_user':"",
   'db_password':""
+}
+
+SPREADSHEET_CONFIG = {
+	'in_use': True,
+	'sheet_key': ''
 }
 
 LOGGER_CONFIG = {
