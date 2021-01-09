@@ -23,6 +23,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
 import handler
+import mcr_handler
 from config import BOT_CONFIG
 from constants import *
 
@@ -208,7 +209,50 @@ def main():
     conversation_timeout=BOT_CONFIG['timeout']
   )
 
+  # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
+  conv_handler_mcr = ConversationHandler(
+    entry_points=[
+      CommandHandler('mcr', mcr_handler.start_new_game),
+    ],
+
+    states={
+      MCR_SET_PLAYER_NAME: [
+        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
+                       mcr_handler.set_player_by_name)
+      ],
+      MCR_CONFIRM_PLAYER_NAME: [
+        MessageHandler(Filters.regex('^(Re-enter Names|Proceed)$') & ~(Filters.command | Filters.regex('^Quit$')),
+                       mcr_handler.confirm_player_name)
+      ],
+      MCR_SELECT_NEXT_COMMAND: [
+        MessageHandler(Filters.regex('^Draw$'), mcr_handler.set_draw_hand),
+        MessageHandler(Filters.regex('^(Tsumo|Ron)$'), mcr_handler.set_win_hand),
+        MessageHandler(Filters.regex('^(Delete Last Hand)$'), mcr_handler.delete_last_hand),
+        MessageHandler(Filters.regex('^(End Game)$'), mcr_handler.confirm_end_game)
+      ],
+      MCR_SET_WINNING_PLAYER: [
+        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
+                       mcr_handler.set_winner)
+      ],
+      MCR_SET_DEAL_IN_PLAYER: [
+        MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
+                       mcr_handler.set_loser)
+      ],
+      MCR_SET_HAND_VALUE: [
+        MessageHandler(Filters.regex('^[0-9]+$'),
+                        mcr_handler.set_hand_value)
+      ],
+      MCR_CONFIRM_GAME_END: [
+        MessageHandler(Filters.regex('^(Yes|No)$'), mcr_handler.end_game)
+      ],
+    },
+
+    fallbacks=[CommandHandler('quit', handler.quit)],
+    conversation_timeout=BOT_CONFIG['timeout']
+  )
+
   dp.add_handler(conv_handler)
+  dp.add_handler(conv_handler_mcr)
 
   # Start the Bot
   updater.start_polling()
