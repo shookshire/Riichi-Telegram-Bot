@@ -315,7 +315,7 @@ def print_game_settings_without_id(game):
 	players = game['players']
 	player_names = [get_player_name(p) for p in players]
 
-	text = '`Game Settings\n---------------------------------------\n'
+	text = '`Game Settings\n-----------------------------\n'
 	text += 'Aka | {}\n'.format(game['aka'])
 	text += 'Uma | {}, {}, {}, {}\n'.format(uma[0], uma[1], uma[2], uma[3])
 	text += 'Oka | {}\n'.format(game['oka'])
@@ -380,9 +380,9 @@ def print_hand_settings(hand, player_names):
 	return text
 
 def print_score_change(hand, player_names):
-	text = '`Score Change:\n---------------------------------------\n`'
+	text = '`Score Change:\n-----------------------------\n`'
 	text += print_name_score(player_names, hand['score change'])
-	text += '`\nCurrent Score:\n---------------------------------------\n`'
+	text += '`\nCurrent Score:\n-----------------------------\n`'
 	text += print_name_score(player_names, hand['final score'])
 	text += '`\nValue in pool: {}\n\n`'.format(hand['pool'])
 
@@ -392,14 +392,14 @@ def print_score_change(hand, player_names):
 	return text
 
 def print_penalty(penalty, player_names):
-	text = '`Penalty:\n---------------------------------------\n`'
+	text = '`Penalty:\n-----------------------------\n`'
 	text += print_name_score(player_names, penalty)
 
 	return text
 
 def print_current_game_settings(game):
 	text = '`Settings:\n`'
-	text += '`---------------------------------------\n`'
+	text += '`-----------------------------\n`'
 	text += '`Initial Value:  | {}\n`'.format(game['initial value'])
 	text += '`Aka:            | {}\n`'.format(game['aka'])
 	text += '`Uma:            | {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
@@ -423,7 +423,7 @@ def print_current_game_state(hands, player_names, intial_value):
 		pool = hand['pool']
 		wind, rnd, honba = get_next_hand_wind_round_honba(hand)
 
-	text = '`\nCurrent Score:\n---------------------------------------\n`'
+	text = '`\nCurrent Score:\n-----------------------------\n`'
 	text += print_name_score(player_names, score)
 	text += '`\nValue in pool: {}\n\n`'.format(pool)
 	text += '`Next Hand:\n{}{}  {} Honba`'.format(wind, rnd, honba)

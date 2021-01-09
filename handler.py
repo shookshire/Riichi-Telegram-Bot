@@ -190,7 +190,7 @@ def set_player_by_name(update, context):
   text = update.message.text
   name = func.handle_name(text)
   players = user_data['players']
-  if not 'player_list' in user_data:
+  if not 'player_list' in user_data and SPREADSHEET_CONFIG['in_use'] and user_data['recorded']:
     user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
@@ -240,7 +240,7 @@ def set_player_by_id(update, context):
   user_data = context.user_data
   text = update.message.text
   players = user_data['players']
-  if not 'player_list' in user_data:
+  if not 'player_list' in user_data and SPREADSHEET_CONFIG['in_use'] and user_data['recorded']:
     user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
@@ -763,7 +763,7 @@ def set_draw_tenpai(update, context):
   tenpai[player_idx] = not tenpai[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI, 
-    '`Players who are in tenpai:\n---------------------------------------\n`'
+    '`Players who are in tenpai:\n-----------------------------\n`'
     + func.print_select_names(player_names, tenpai)
     + '`\nWho is in Tenpai?`')
 
@@ -792,7 +792,7 @@ def set_riichi(update, context):
   riichi[player_idx] = not riichi[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_RIICHI, 
-    '`Players who riichi:\n---------------------------------------\n`'
+    '`Players who riichi:\n-----------------------------\n`'
     + func.print_select_names(player_names, riichi)
     + '`\nWho riichi?`')
 
@@ -839,7 +839,7 @@ def set_chombo(update, context):
   chombo[player_idx] = not chombo[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_CHOMBO, 
-    '`Players who Chombo:\n---------------------------------------\n`'
+    '`Players who Chombo:\n-----------------------------\n`'
     + func.print_select_names(player_names, chombo)
     + '`\nWho Chombo?`')
 
