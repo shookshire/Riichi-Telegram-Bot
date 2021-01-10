@@ -1007,7 +1007,7 @@ def save_complete_game(update, context):
   update.message.reply_text("`Game have been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
   
   for player in players:
-    if not player['telegram_id'] is None:
+    if player['telegram_id']:
       push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
 
   user_data.clear()

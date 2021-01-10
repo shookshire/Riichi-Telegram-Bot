@@ -14,7 +14,7 @@ def get_player_list():
 	sh = connect_spreadsheet()
 	players = sh.worksheet('players')
 	res = players.get_all_records()
-	return list(map(lambda x: {'pid': x['pid'], 'name': string.capwords(x['name'].strip()), 'telegram_id': int('0' + x['telegram_id']) if int('0' + x['telegram_id']) else None}, res))
+	return list(map(lambda x: {'pid': x['pid'], 'name': string.capwords(x['name'].strip()), 'telegram_id': x['telegram_id']}, res))
 
 def get_venue_list():
 	sh = connect_spreadsheet()
