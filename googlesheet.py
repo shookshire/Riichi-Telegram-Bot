@@ -23,12 +23,12 @@ def get_venue_list():
 	filtered = list(filter(lambda x: int(x['status']), res))
 	return list(map(lambda x: {'vid': x['vid'], 'name': x['name']}, filtered))
 
-def get_mode_list(vid):
+def get_mode_list():
 	sh = connect_spreadsheet()
 	mode = sh.worksheet('mode')
 	res = mode.get_all_records()
-	filtered = list(filter(lambda x: int(x['status']) and x['vid'] == vid, res))
-	return list(map(lambda x: {'mid': x['mid'], 'name': x['name']}, filtered))
+	filtered = list(filter(lambda x: int(x['status']), res))
+	return list(map(lambda x: {'mid': x['mid'], 'name': x['name'], 'vid': x['vid']}, filtered))
 
 def get_last_id(worksheet):
 	res = worksheet.col_values(1)

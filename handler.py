@@ -14,7 +14,7 @@ import db
 import googlesheet
 from constants import *
 from log_helper import catch_error
-from config import DB_CONFIG, SPREADSHEET_CONFIG
+from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
 
 @catch_error
 def helper(update, context):
@@ -28,6 +28,18 @@ def helper(update, context):
     +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 
   return ConversationHandler.END
+
+@catch_error
+def get_googlesheet_data(update, context):
+  bot_data = context.bot_data
+  if SPREADSHEET_CONFIG['in_use'] and update.message.chat.id in ADMIN:
+    bot_data['player_list'] = googlesheet.get_player_list()
+    bot_data['venue_list'] = googlesheet.get_venue_list()
+    bot_data['mode_list'] = googlesheet.get_mode_list()
+    update.message.reply_text('finish updating data')
+
+  return ConversationHandler.END
+
 
 @catch_error
 def get_telegram_id(update, context):
@@ -71,12 +83,13 @@ def start_input_game_result(update, context):
 @catch_error
 def set_recorded_game(update, context):
   user_data = context.user_data
+  bot_data = context.bot_data
   user_data['recorded'] = True
 
   if DB_CONFIG['in_use']:
     venue_list = db.get_all_venue()
   elif SPREADSHEET_CONFIG['in_use']:
-    venue_list = googlesheet.get_venue_list()
+    venue_list = bot_data['venue_list']
   user_data['venue_list'] = venue_list
 
   reply_keyboard = [[h['name'] for h in venue_list[i:i+2]] for i in range(0, len(venue_list), 2)]
@@ -103,6 +116,7 @@ def set_not_recorded_Game(update, context):
 @catch_error
 def set_game_venue(update, context):
   user_data = context.user_data
+  bot_data = context.bot_data
   text = update.message.text
   venue_list = user_data['venue_list']
 
@@ -125,7 +139,7 @@ def set_game_venue(update, context):
   if DB_CONFIG['in_use']:
     mode_list = db.get_mode_by_vid(venue['vid'])
   elif SPREADSHEET_CONFIG['in_use']:
-    mode_list = googlesheet.get_mode_list(venue['vid'])
+    mode_list = gfunc.filter_mode_by_bid(bot_data['mode_list'], venue['vid'])
   user_data['mode_list'] = mode_list
 
   reply_keyboard = [[h['name'] for h in mode_list[i:i+2]] for i in range(0, len(mode_list), 2)]
@@ -188,17 +202,16 @@ def exit_venue_mode(update, context):
 @catch_error
 def set_player_by_name(update, context):
   user_data = context.user_data
+  bot_data = context.bot_data
   text = update.message.text
   name = func.handle_name(text)
   players = user_data['players']
-  if not 'player_list' in user_data and SPREADSHEET_CONFIG['in_use'] and user_data['recorded']:
-    user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
     if DB_CONFIG['in_use']:
       player_info = db.get_player_by_name(name)
     elif SPREADSHEET_CONFIG['in_use']:
-      player_info = gfunc.check_valid_name_from_list(name, user_data['player_list'])
+      player_info = gfunc.check_valid_name_from_list(name, bot_data['player_list'])
 
     if player_info is None:
       update.message.reply_text("`Please enter a valid name`", 
@@ -239,16 +252,15 @@ def set_player_by_name(update, context):
 @catch_error
 def set_player_by_id(update, context):
   user_data = context.user_data
+  bot_data = context.bot_data
   text = update.message.text
   players = user_data['players']
-  if not 'player_list' in user_data and SPREADSHEET_CONFIG['in_use'] and user_data['recorded']:
-    user_data['player_list'] = googlesheet.get_player_list()
 
   if user_data['recorded']:
     if DB_CONFIG['in_use']:
       player_info = db.get_player_by_id(text)
     elif SPREADSHEET_CONFIG['in_use']:
-      player_info = gfunc.check_valid_id_from_list(int(text), user_data['player_list'])
+      player_info = gfunc.check_valid_id_from_list(int(text), bot_data['player_list'])
 
     if player_info is None:
       update.message.reply_text("`Please enter a valid id`",

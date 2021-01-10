@@ -89,6 +89,6 @@ def print_score(score):
 def print_current_game_state(hands):
 	hand = hands[-1]
 
-	text = '`Current round: {} {}\n\n`'.format(SEAT_NAME[hand['wind']], hand['round'])
+	text = '`Current situation: {} {}\n\n`'.format(SEAT_NAME[hand['wind']], hand['round'])
 	text += print_score(hand['initial score'])
 	return text

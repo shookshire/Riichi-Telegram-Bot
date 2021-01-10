@@ -51,7 +51,8 @@ def main():
       CommandHandler('help', handler.helper),
       CommandHandler('start', handler.start_new_game),
       # CommandHandler('record', handler.start_input_game_result),
-      CommandHandler('get_telegram_id', handler.get_telegram_id)
+      CommandHandler('get_telegram_id', handler.get_telegram_id),
+      CommandHandler('update_data', handler.get_googlesheet_data)
     ],
 
     states={
@@ -226,7 +227,7 @@ def main():
       ],
       MCR_SELECT_NEXT_COMMAND: [
         MessageHandler(Filters.regex('^Draw$'), mcr_handler.set_draw_hand),
-        MessageHandler(Filters.regex('^(Tsumo|Ron)$'), mcr_handler.set_win_hand),
+        MessageHandler(Filters.regex('^(Self Draw|Win Off Discard)$'), mcr_handler.set_win_hand),
         MessageHandler(Filters.regex('^(Delete Last Hand)$'), mcr_handler.delete_last_hand),
         MessageHandler(Filters.regex('^(End Game)$'), mcr_handler.confirm_end_game)
       ],

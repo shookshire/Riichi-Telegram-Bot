@@ -61,7 +61,7 @@ def set_player_by_name(update, context):
 
 
 def return_next_command(update, text):
-  reply_keyboard = [['Tsumo', 'Ron', 'Draw'], ['Delete Last Hand', 'End Game']]
+  reply_keyboard = [['Self Draw', 'Win Off Discard', 'Draw'], ['Delete Last Hand', 'End Game']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -164,9 +164,13 @@ def return_4_player_option(update, score, return_state, text):
 def set_win_hand(update, context):
   user_data = context.user_data
   text = update.message.text
+  if text == 'Self Draw':
+    outcome = 'Tsumo'
+  elif text == 'Win Off Discard':
+    outcome = 'Ron'
 
   hand = user_data['hands'][-1]
-  hand['outcome'] = text
+  hand['outcome'] = outcome
 
   return return_4_player_option(update, hand['initial score'], MCR_SET_WINNING_PLAYER, '`Who won?`')
 
