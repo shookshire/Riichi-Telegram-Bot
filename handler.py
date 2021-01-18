@@ -207,6 +207,11 @@ def set_player_by_name(update, context):
   name = func.handle_name(text)
   players = user_data['players']
 
+  if name in BLOCKED_NAMES:
+    update.message.reply_text("`This player name is not allowed`",
+      parse_mode=ParseMode.MARKDOWN_V2)
+    return SET_PLAYER_NAME
+
   if user_data['recorded']:
     if DB_CONFIG['in_use']:
       player_info = db.get_player_by_name(name)
@@ -615,6 +620,8 @@ def add_new_hand(update, context):
   user_data = context.user_data
   player_names = func.get_all_player_name(user_data['players'])
   user_data['new hand'] = func.create_new_hand(user_data['hands'], user_data['initial value'])
+  user_data['multiple ron winner list'] = []
+  user_data['multiple ron loser'] = None
 
   return return_4_player_done_option(update, player_names, SET_RIICHI,'`Who riichi?`')
 
@@ -694,7 +701,20 @@ def set_winner(update, context):
   if not func.is_valid_player_name(text, player_names):
     return return_4_player_option(update, player_names, SET_WINNER, '`Invalid player name entered\nPlease enter a valid player name`')
 
-  new_hand['winner idx'] = func.get_player_idx(text, player_names)
+  winner_idx = func.get_player_idx(text, player_names)
+
+  if winner_idx in user_data['multiple ron winner list']:
+    return return_4_player_option(update, player_names, SET_WINNER, '`This player have already been selected. Please select another player.`')
+
+  if winner_idx == user_data['multiple ron loser']:
+    return return_4_player_option(update, player_names, SET_WINNER, '`Invalid player name entered\nPlease enter a valid player name`')
+
+  new_hand['winner idx'] = winner_idx
+  user_data['multiple ron winner list'].append(winner_idx)
+
+  if not user_data['multiple ron loser'] is None:
+    new_hand['loser idx'] = user_data['multiple ron loser']
+    return return_set_han(update)
 
   if new_hand['outcome'] == "Tsumo":
     return return_set_han(update)
@@ -717,6 +737,7 @@ def set_loser(update, context):
     return return_4_player_option(update, player_names, SET_LOSER, '`Invalid Player Selected\nWho Lost?`')
 
   new_hand['loser idx'] = loser_idx
+  user_data['multiple ron loser'] = loser_idx
   
   return return_set_han(update)
 
@@ -878,9 +899,14 @@ def discard_hand(update, context):
   user_data = context.user_data
   hands = user_data['hands']
   player_names = func.get_all_player_name(user_data['players'])
+  hand_num = user_data['new hand']['hand num']
+
+  while len(hands) > 0 and hands[-1]['hand num'] == hand_num:
+    hands.pop()
+
   del user_data['new hand']
 
-  return return_next_command(update, '`Hand have been discarded\n\n`' + func.print_current_game_state(hands, player_names, user_data['initial value']) +'`Please select an option:`')
+  return return_next_command(update, '`Hand have been discarded\n`' + func.print_current_game_state(hands, player_names, user_data['initial value']) +'`\n\nPlease select an option:`')
 
 @catch_error
 def save_hand(update, context):
@@ -896,12 +922,42 @@ def save_hand(update, context):
   if user_data['recorded'] and DB_CONFIG['in_use']:
     db.set_new_hand(new_hand, user_data['id'], func.get_all_player_id(user_data['players']))
 
+  new_hand['winner idx list'] = user_data['multiple ron winner list']
   user_data['hands'].append(new_hand)
   del user_data['new hand']
 
+  if SPREADSHEET_CONFIG['in_use'] and new_hand['outcome'] == 'Ron' and len(user_data['multiple ron winner list']) < 3:
+    reply_keyboard = [['Yes', 'No']]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+      '`Are there multiple Ron?`',
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+    return MULTIPLE_RON
+
   return return_next_command(update, 
-    func.print_hand_settings(new_hand, player_names)
-    + '`\n`' + func.print_score_change(new_hand, player_names)
+    func.print_hand_title(new_hand)
+    + func.print_score_change(user_data['hands'], player_names)
+    + '`\n\nPlease select an option:`')
+
+@catch_error
+def confirm_multiple_ron(update, context):
+  user_data = context.user_data
+  player_names = func.get_all_player_name(user_data['players'])
+  user_data['new hand'] = func.create_multiple_ron_hand(user_data['hands'])
+
+  return return_4_player_option(update, player_names, SET_WINNER,'`Who Won?`')
+
+@catch_error
+def no_multiple_ron(update, context):
+  user_data = context.user_data
+  player_names = func.get_all_player_name(user_data['players'])
+  new_hand = user_data['hands'][-1]
+  return return_next_command(update, 
+    func.print_hand_title(new_hand)
+    + func.print_score_change(user_data['hands'], player_names)
     + '`\n\nPlease select an option:`')
 
 @catch_error
@@ -1080,7 +1136,8 @@ def delete_last_hand(update, context):
     last_hand_num = hands[-1]['hand num']
     if DB_CONFIG['in_use']:
       db.delete_last_hand(user_data['id'], last_hand_num)
-    hands.pop()
+    while len(hands) > 0 and hands[-1]['hand num'] == last_hand_num:
+      hands.pop()
 
   return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
 

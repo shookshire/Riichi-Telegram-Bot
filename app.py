@@ -169,6 +169,10 @@ def main():
         MessageHandler(Filters.regex('^Save$'), handler.save_hand),
         MessageHandler(Filters.regex('^Discard$'), handler.discard_hand)
       ],
+      MULTIPLE_RON: [
+        MessageHandler(Filters.regex('^Yes$'), handler.confirm_multiple_ron),
+        MessageHandler(Filters.regex('^No$'), handler.no_multiple_ron)
+      ],
       CONFIRM_GAME_END: [
         MessageHandler(Filters.regex('^Yes$'), handler.confirm_game_end),
         MessageHandler(Filters.regex('^No$'), handler.return_to_next_command)

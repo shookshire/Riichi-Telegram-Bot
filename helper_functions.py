@@ -35,7 +35,10 @@ def get_last_valid_hand(hands):
 	return None
 
 def is_renchan(hand):
-	if (hand['outcome'] == 'Tsumo' or hand['outcome'] == 'Ron') and (hand['winner idx'] + 1 == hand['round num']):
+	if hand['outcome'] == 'Tsumo' and (hand['winner idx'] + 1 == hand['round num']):
+		return True
+
+	if hand['outcome'] == 'Ron' and (hand['round num'] - 1 in hand['winner idx list']):
 		return True
 
 	if hand['outcome'] == 'Draw' and hand['tenpai'][hand['round num'] - 1]:
@@ -154,6 +157,33 @@ def create_new_hand(hands, intial_value):
 	new_hand['initial score'] = prev_hand['final score'].copy()
 	new_hand['final score'] = prev_hand['final score'].copy()
 	new_hand['pool'] = prev_hand['pool']
+
+	return new_hand
+
+def create_multiple_ron_hand(hands):
+	prev_hand = hands[-1]
+
+	new_hand = {
+		'hand num': prev_hand['hand num'],
+		'wind': prev_hand['wind'],
+		'round num': prev_hand['round num'],
+		'honba': prev_hand['honba'],
+		'outcome': 'Ron',
+		'han': 0,
+		'fu': 0,
+		'value': 0,
+		'winner idx': '',
+		'loser idx': '',
+		'tenpai': [False, False, False, False],
+		'riichi': [False, False, False, False],
+		'initial score': prev_hand['final score'].copy(),
+		'final score': prev_hand['final score'].copy(),
+		'position': [2.5,2.5,2.5,2.5],
+		'chombo': [False, False, False, False],
+		'score change': [0,0,0,0],
+		'pool': 0,
+		'penalty': [0,0,0,0]
+	}
 
 	return new_hand
 
@@ -349,9 +379,13 @@ def print_name_score(player_names, score):
 
 	return text
 
-def print_hand_settings(hand, player_names):
+def print_hand_title(hand):
 	text = '`Hand Number: {}\n`'.format(hand['hand num'])
 	text += '`Round: {}{}  {} Honba\n\n`'.format(hand['wind'], hand['round num'], hand['honba'])
+	return text
+
+def print_hand_settings(hand, player_names):
+	text = print_hand_title(hand)
 	
 	if hand['outcome'] == 'Chombo':
 		text += '`Who Chombo:\n`'
@@ -379,9 +413,17 @@ def print_hand_settings(hand, player_names):
 	text += print_select_names(player_names, hand['riichi'])
 	return text
 
-def print_score_change(hand, player_names):
+def print_score_change(hands, player_names):
+	hand = hands[-1]
+	hand_num = hand['hand num']
+
+	score_change = [0,0,0,0]
+	for i in range(1, len(hands) + 1):
+		if hands[-i]['hand num'] == hand_num:
+			score_change = [x + y for x, y in zip(score_change, hands[-i]['score change'])]
+
 	text = '`Score Change:\n-----------------------------\n`'
-	text += print_name_score(player_names, hand['score change'])
+	text += print_name_score(player_names, score_change)
 	text += '`\nCurrent Score:\n-----------------------------\n`'
 	text += print_name_score(player_names, hand['final score'])
 	text += '`\nValue in pool: {}\n\n`'.format(hand['pool'])

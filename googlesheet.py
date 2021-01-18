@@ -101,7 +101,7 @@ def set_hand_info(game, gid):
 		row = [
 			hid,
 			gid,
-			i+1,
+			hand['hand num'],
 			hand['wind'],
 			hand['round num'],
 			hand['honba'],
