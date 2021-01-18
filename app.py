@@ -52,7 +52,7 @@ def main():
       CommandHandler('start', handler.start_new_game),
       # CommandHandler('record', handler.start_input_game_result),
       CommandHandler('get_telegram_id', handler.get_telegram_id),
-      CommandHandler('update_data', handler.get_googlesheet_data)
+      CommandHandler('update', handler.get_googlesheet_data)
     ],
 
     states={

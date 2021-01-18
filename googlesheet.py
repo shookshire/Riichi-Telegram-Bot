@@ -1,9 +1,12 @@
 import gspread
 import string
+import threading
+import copy
 
 from datetime import datetime
 from config import SPREADSHEET_CONFIG
 import helper_functions as func
+import googlesheet_helper_func as gfunc
 
 
 def connect_spreadsheet():
@@ -34,11 +37,18 @@ def get_last_id(worksheet):
 	res = worksheet.col_values(1)
 	return int(res[-1]) if len(res) > 1 else 0
 
-def set_game(game, timeout=False):
+def set_game(update, game, timeout=False):
 	gid = set_game_info(game, timeout)
 	set_game_result(game, gid)
 	set_hand_info(game, gid)
+
+	gfunc.print_final_outcome(update, game, gid)
+
 	return gid
+
+def set_game_thread(update, game, timeout=False):
+	thread = threading.Thread(target=set_game, args=(update, copy.copy(game), timeout))
+	thread.start()
 
 def set_game_info(game, timeout=False):
 	sh = connect_spreadsheet()
