@@ -53,7 +53,10 @@ def get_next_wind_round(wind, round_num):
 	if wind == 'E':
 		return 'S', 1
 
-	return 'W', 1
+	if wind == 'S':
+		return 'W', 1
+
+	return 'N', 1
 
 def process_chombo_hand(hand, chombo_value, chombo_option):
 	chombo = hand['chombo']
