@@ -23,14 +23,14 @@ def get_venue_list():
 	sh = connect_spreadsheet()
 	venue = sh.worksheet('venue')
 	res = venue.get_all_records()
-	filtered = list(filter(lambda x: int(x['status']), res))
+	filtered = list(filter(lambda x: x['status'] == 'TRUE', res))
 	return list(map(lambda x: {'vid': x['vid'], 'name': x['name']}, filtered))
 
 def get_mode_list():
 	sh = connect_spreadsheet()
 	mode = sh.worksheet('mode')
 	res = mode.get_all_records()
-	filtered = list(filter(lambda x: int(x['status']), res))
+	filtered = list(filter(lambda x: x['status'] == 'TRUE', res))
 	return list(map(lambda x: {'mid': x['mid'], 'name': x['name'], 'vid': x['vid']}, filtered))
 
 def get_last_id(worksheet):
