@@ -2,3 +2,4 @@ numpy
 telegram
 python-telegram-bot
 psycopg2
+gspread

@@ -1156,25 +1156,23 @@ def quit(update, context):
 def timeout(update, context):
   user_data = context.user_data
 
-  if 'id' in user_data and user_data['id']:
-    players = user_data['players']
-    player_names = func.get_all_player_name(user_data['players'])
-
+  if user_data['recorded']:
     func.process_game(user_data)
+    if DB_CONFIG['in_use'] and 'id' in user_data and user_data['id']:
+      players = user_data['players']
+      player_names = func.get_all_player_name(user_data['players'])
 
-    if user_data['recorded']:
-      if DB_CONFIG['in_use']:
-        db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
-        final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
+      db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
+      final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
 
-        update.message.reply_text("`Game have timeout and is assumed to be completed\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
-        
-        for player in players:
-          if not player['telegram_id'] is None:
-            push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
-      elif SPREADSHEET_CONFIG['in_use']:
-        update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
-        gid = googlesheet.set_game_thread(update, user_data, True)
+      update.message.reply_text("`Game have timeout and is assumed to be completed\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+      
+      for player in players:
+        if not player['telegram_id'] is None:
+          push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
+    elif SPREADSHEET_CONFIG['in_use']:
+      update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
+      gid = googlesheet.set_game_thread(update, user_data, True)
 
   else:
     update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
