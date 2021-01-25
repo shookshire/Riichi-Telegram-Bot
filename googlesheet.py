@@ -5,6 +5,7 @@ import copy
 
 from datetime import datetime
 from config import SPREADSHEET_CONFIG
+from log_helper import logger
 import helper_functions as func
 import googlesheet_helper_func as gfunc
 
@@ -23,14 +24,14 @@ def get_venue_list():
 	sh = connect_spreadsheet()
 	venue = sh.worksheet('venue')
 	res = venue.get_all_records()
-	filtered = list(filter(lambda x: x['status'] == 'TRUE', res))
+	filtered = list(filter(lambda x: int(x['status']), res))
 	return list(map(lambda x: {'vid': x['vid'], 'name': x['name']}, filtered))
 
 def get_mode_list():
 	sh = connect_spreadsheet()
 	mode = sh.worksheet('mode')
 	res = mode.get_all_records()
-	filtered = list(filter(lambda x: x['status'] == 'TRUE', res))
+	filtered = list(filter(lambda x: int(x['status']), res))
 	return list(map(lambda x: {'mid': x['mid'], 'name': x['name'], 'vid': x['vid']}, filtered))
 
 def get_last_id(worksheet):
@@ -43,6 +44,8 @@ def set_game(update, game, timeout=False):
 	set_hand_info(game, gid)
 
 	gfunc.print_final_outcome(update, game, gid)
+
+	logger.info("gid {} have been saved. Timeout={}".format(gid, timeout))
 
 	return gid
 
@@ -131,14 +134,14 @@ def set_hand_result(hand, gid, hid, players):
 			hid,
 			players[i]['pid'],
 			hand['position'][i],
-			oya[i],
+			int(oya[i]),
 			ioutcome[i],
-			hand['tenpai'][i],
-			hand['riichi'][i],
+			int(hand['tenpai'][i]),
+			int(hand['riichi'][i]),
 			hand['initial score'][i],
 			hand['final score'][i],
 			hand['score change'][i],
-			hand['chombo'][i]
+			int(hand['chombo'][i])
 		]
 		worksheet.append_row(row)
 
