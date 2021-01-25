@@ -1071,7 +1071,7 @@ def save_complete_game(update, context):
         if player['telegram_id']:
           push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
     elif SPREADSHEET_CONFIG['in_use']:
-      update.message.reply_text("`The game result have been submitted`", parse_mode=ParseMode.MARKDOWN_V2)
+      update.message.reply_text("`The game result is being submitted`", parse_mode=ParseMode.MARKDOWN_V2)
       gid = googlesheet.set_game_thread(update, user_data)
 
   user_data.clear()

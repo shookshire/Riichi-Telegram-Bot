@@ -1,6 +1,6 @@
 import gspread
 import string
-import threading
+from threading import Thread, Lock
 import copy
 
 from datetime import datetime
@@ -9,6 +9,7 @@ from log_helper import logger
 import helper_functions as func
 import googlesheet_helper_func as gfunc
 
+mutex = Lock()
 
 def connect_spreadsheet():
 	gc = gspread.service_account(filename="./service_account.json")
@@ -39,6 +40,8 @@ def get_last_id(worksheet):
 	return int(res[-1]) if len(res) > 1 else 0
 
 def set_game(update, game, timeout=False):
+	mutex.acquire()
+
 	gid = set_game_info(game, timeout)
 	set_game_result(game, gid)
 	set_hand_info(game, gid)
@@ -47,10 +50,12 @@ def set_game(update, game, timeout=False):
 
 	logger.info("gid {} have been saved. Timeout={}".format(gid, timeout))
 
+	mutex.release()
+
 	return gid
 
 def set_game_thread(update, game, timeout=False):
-	thread = threading.Thread(target=set_game, args=(update, copy.copy(game), timeout))
+	thread = Thread(target=set_game, args=(update, copy.copy(game), timeout))
 	thread.start()
 
 def set_game_info(game, timeout=False):
