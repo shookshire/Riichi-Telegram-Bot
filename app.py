@@ -48,8 +48,8 @@ def main():
   # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
   conv_handler = ConversationHandler(
     entry_points=[
-      CommandHandler('help', handler.helper),
-      CommandHandler('start', handler.start_new_game),
+      CommandHandler('start', handler.helper),
+      CommandHandler('riichi', handler.start_new_game),
       # CommandHandler('record', handler.start_input_game_result),
       CommandHandler('get_telegram_id', handler.get_telegram_id),
       CommandHandler('update', handler.get_googlesheet_data)

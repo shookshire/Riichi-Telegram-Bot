@@ -21,10 +21,10 @@ def helper(update, context):
 
   update.message.reply_text(
     "For registration and other queries, please contact @MrFeng\n\n"
-    +"/start : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
+    +"/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
     # +"/record : Save final game score to SgRiichi server.\n\n"
     +"/get_telegram_id: Returns your telegram id number.\n\n"
-    +"/mcr: Start a new MCR score tracker. Game data are NOT recorded.\n\n"
+    +"/mcr: Start a new MCR score tracker. Game data are not recorded.\n\n"
     +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 
   return ConversationHandler.END
@@ -609,7 +609,7 @@ def set_leftover_pool(update, context):
 @catch_error
 def discard_game_settings(update, context):
   user_data = context.user_data
-  update.message.reply_text("`Game have been discarded.`",
+  update.message.reply_text("`Game has been discarded.`",
     parse_mode=ParseMode.MARKDOWN_V2)
 
   user_data.clear()
@@ -1066,7 +1066,7 @@ def save_complete_game(update, context):
     if DB_CONFIG['in_use']:
       db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
       final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
-      update.message.reply_text("`Game have been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+      update.message.reply_text("`Game has been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
       for player in players:
         if player['telegram_id']:
           push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
@@ -1109,7 +1109,7 @@ def save_result_only_game(update, context):
       update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
       gid = googlesheet.set_record_game(user_data)
 
-  update.message.reply_text("`Game have been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
+  update.message.reply_text("`Game has been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
 
   final_score_text = func.print_end_game_result(gid, player_names, user_data['final score'], user_data['position'])
 

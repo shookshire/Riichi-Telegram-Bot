@@ -494,7 +494,7 @@ def print_result_only_game_settings(game):
 def print_game_confirmation(gid, final_score_text):
 	text = '`Hi! A game have been recorded with you as a participant.\n\n`'
 	text += final_score_text
-	text += '`\n\nIf you did not participate in this game please sound out to SgRiichi admins`'
+	text += '`\n\nIf you did not participate in this game please contact @MrFeng or other SgRiichi admins`'
 
 	return text
 
