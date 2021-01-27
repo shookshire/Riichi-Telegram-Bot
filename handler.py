@@ -24,7 +24,7 @@ def helper(update, context):
     +"/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
     # +"/record : Save final game score to SgRiichi server.\n\n"
     +"/get_telegram_id: Returns your telegram id number.\n\n"
-    +"/mcr: Start a new MCR score tracker. Game data are not recorded.\n\n"
+    +"/mcr: Start a new MCR score tracker. Game data are NOT recorded.\n\n"
     +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 
   return ConversationHandler.END
