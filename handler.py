@@ -26,7 +26,7 @@ def helper(update, context):
     # +"/record : Save final game score to SgRiichi server.\n\n"
     +"/get_telegram_id: Returns your telegram id number.\n\n"
     +"/get_sgriichi_id: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n\n"
-    +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
+    +"/quit: Quit current game. Game data will not be recorded.")
 
   return ConversationHandler.END
 
