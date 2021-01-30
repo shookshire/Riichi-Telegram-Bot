@@ -346,7 +346,7 @@ def confirm_player_name(update, context):
   return return_select_edit_settings(update, user_data)
 
 def return_select_edit_settings(update, game):
-  reply_keyboard = [['Done'], ['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options'], ['Kiriage Mangan', 'Multiple Ron']]
+  reply_keyboard = [['Done'], ['Kiriage Mangan', 'Multiple Ron'], ['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(

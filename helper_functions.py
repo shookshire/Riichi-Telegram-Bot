@@ -452,7 +452,7 @@ def print_current_game_settings(game):
 	text += '`Chombo Value:   | {}\n`'.format(game['chombo value'])
 	text += '`Chombo Option:  | {}\n`'.format(game['chombo option'])
 	text += '`Kiriage Mangan: | {}\n`'.format('Yes' if game['kiriage'] else 'No')
-	text += '`Multiple Ron: 	| {}\n`'.format('Yes' if not game['atamahane'] else 'No')
+	text += '`Multiple Ron: 	 | {}\n`'.format('Yes' if not game['atamahane'] else 'No')
 
 	return text
 
