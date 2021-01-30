@@ -447,7 +447,7 @@ def print_current_game_settings(game):
 	text += '`-----------------------------\n`'
 	text += '`Initial Value:  | {}\n`'.format(game['initial value'])
 	text += '`Aka:            | {}\n`'.format(game['aka'])
-	text += '`Uma:            | {}, {}, {}, {}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
+	text += '`Uma:            | {},{},{},{}\n`'.format(game['uma'][0], game['uma'][1], game['uma'][2], game['uma'][3])
 	text += '`Oka:            | {}\n`'.format(game['oka'])
 	text += '`Chombo Value:   | {}\n`'.format(game['chombo value'])
 	text += '`Chombo Option:  | {}\n`'.format(game['chombo option'])
