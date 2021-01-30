@@ -1166,13 +1166,28 @@ def discard_result_only_game(update, context):
   user_data.clear()
   return ConversationHandler.END
 
+def confirm_delete_last_hand(update, context):
+  print('delete')
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+  print('delete3')
+
+  update.message.reply_text(
+    "`Delete last hand?`",
+    parse_mode=ParseMode.MARKDOWN_V2, 
+    reply_markup=markup)
+  print('delete2')
+
+  return DELETE_LAST_HAND
+
 @catch_error
 def delete_last_hand(update, context):
   user_data = context.user_data
   hands = user_data['hands']
   player_names = func.get_all_player_name(user_data['players'])
+  text = update.message.text
 
-  if len(hands) > 0:
+  if len(hands) > 0 and text == 'Yes':
     last_hand_num = hands[-1]['hand num']
     if DB_CONFIG['in_use']:
       db.delete_last_hand(user_data['id'], last_hand_num)
