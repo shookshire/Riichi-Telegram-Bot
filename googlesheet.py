@@ -20,7 +20,6 @@ def get_player_list():
 	players = sh.worksheet('players')
 	res = players.get_all_records()
 	res = list(filter(lambda x: x['telegram_id'], res))
-	print(res)
 	return list(map(lambda x: {'pid': x['pid'], 'name': string.capwords(x['name'].strip()), 'telegram_id': x['telegram_id']}, res))
 
 def get_venue_list():
