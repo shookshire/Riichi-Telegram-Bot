@@ -52,6 +52,7 @@ def main():
       CommandHandler('riichi', handler.start_new_game),
       # CommandHandler('record', handler.start_input_game_result),
       CommandHandler('get_telegram_id', handler.get_telegram_id),
+      CommandHandler('get_sgriichi_id', handler.get_sgriichi_id),
       CommandHandler('update', handler.get_googlesheet_data)
     ],
 
@@ -95,8 +96,14 @@ def main():
                         handler.select_edit_chombo_payment_option),
         MessageHandler(Filters.regex('^Kiriage Mangan$'),
                         handler.select_edit_kiriage_mangan),
+        MessageHandler(Filters.regex('^Multiple Ron$'),
+                        handler.select_edit_atamahane),
         MessageHandler(Filters.regex('^Done$'),
                         handler.select_edit_done)
+      ],
+      SET_ATAMAHANE: [
+        MessageHandler(Filters.regex('^(Yes|No)$'),
+                                handler.set_atamahane)
       ],
       SET_KIRIAGE: [
         MessageHandler(Filters.regex('^(Yes|No)$'),

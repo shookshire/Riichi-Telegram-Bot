@@ -22,9 +22,10 @@ def helper(update, context):
   update.message.reply_text(
     "For registration and other queries, please contact @MrFeng\n\n"
     +"/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
+    +"/mcr: Start a new MCR score tracker. Game data are NOT recorded.\n\n"
     # +"/record : Save final game score to SgRiichi server.\n\n"
     +"/get_telegram_id: Returns your telegram id number.\n\n"
-    +"/mcr: Start a new MCR score tracker. Game data are NOT recorded.\n\n"
+    +"/get_sgriichi_id: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n\n"
     +"/quit: Quit current game. If it is a recorded game, it will be marked as incomplete")
 
   return ConversationHandler.END
@@ -46,6 +47,22 @@ def get_telegram_id(update, context):
 
   update.message.reply_text('telegram id: {}'.format(update.message.chat.id))
   return ConversationHandler.END
+
+@catch_error
+def get_sgriichi_id(update, context):
+  bot_data = context.bot_data
+  telegram_id = update.message.chat.id
+  player_list = bot_data['player_list']
+
+  filtered = list(filter(lambda x: x['telegram_id'] == telegram_id, player_list))
+  if len(filtered):
+    update.message.reply_text('SgRiichi id: {}'.format(filtered[0]['pid']))
+  else:
+    update.message.reply_text('Your telegram id has not been registered. If you have already signed up with SgRiichi, please contact @MrFeng or other SgRiichi admins.')
+
+  return ConversationHandler.END
+
+
 
 @catch_error
 def start_new_game(update, context):
@@ -324,11 +341,12 @@ def confirm_player_name(update, context):
   user_data['chombo value'] = 40
   user_data['chombo option'] = 'Payment to all'
   user_data['kiriage'] = True
+  user_data['atamahane'] = True
 
   return return_select_edit_settings(update, user_data)
 
 def return_select_edit_settings(update, game):
-  reply_keyboard = [['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options'], ['Kiriage Mangan', 'Done']]
+  reply_keyboard = [['Done'], ['Initial Value', 'Aka'], ['Uma', 'Oka'], ['Chombo Value', 'Chombo Options'], ['Kiriage Mangan', 'Multiple Ron']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -338,6 +356,28 @@ def return_select_edit_settings(update, game):
     reply_markup=markup)
 
   return SELECT_EDIT_SETTINGS
+
+@catch_error
+def select_edit_atamahane(update, context):
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    "`Is multiple ron allowed?:`",
+    parse_mode=ParseMode.MARKDOWN_V2,
+    reply_markup=markup)
+
+  return SET_ATAMAHANE
+
+@catch_error
+def set_atamahane(update, context):
+  user_data = context.user_data
+  text = update.message.text
+
+  multiple_ron = text == 'Yes'
+  user_data['atamahane'] = not multiple_ron
+
+  return return_select_edit_settings(update, user_data)
 
 @catch_error
 def select_edit_kiriage_mangan(update, context):
@@ -600,7 +640,7 @@ def set_leftover_pool(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-    '`Are they any penalty?`',
+    '`Are there any penalties?`',
     parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
 
@@ -926,12 +966,12 @@ def save_hand(update, context):
   user_data['hands'].append(new_hand)
   del user_data['new hand']
 
-  if SPREADSHEET_CONFIG['in_use'] and new_hand['outcome'] == 'Ron' and len(user_data['multiple ron winner list']) < 3:
+  if SPREADSHEET_CONFIG['in_use'] and new_hand['outcome'] == 'Ron' and not user_data['atamahane'] and len(user_data['multiple ron winner list']) < 3:
     reply_keyboard = [['Yes', 'No']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
     update.message.reply_text(
-      '`Are there multiple Ron?`',
+      '`Did anyone else Ron?`',
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
@@ -978,7 +1018,7 @@ def confirm_game_end(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-    '`Are they any penalty?`',
+    '`Are there any penalties?`',
     parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
 
