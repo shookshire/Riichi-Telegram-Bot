@@ -11,6 +11,13 @@ import googlesheet_helper_func as gfunc
 
 mutex = Lock()
 
+def can_convert_to_int(str):
+	try:
+		int(str)
+		return True
+	except:
+		return False
+
 def connect_spreadsheet():
 	gc = gspread.service_account(filename="./service_account.json")
 	return gc.open_by_key(SPREADSHEET_CONFIG['sheet_key'])
@@ -18,23 +25,23 @@ def connect_spreadsheet():
 def get_player_list():
 	sh = connect_spreadsheet()
 	players = sh.worksheet('players')
-	res = players.get_all_records()
-	res = list(filter(lambda x: x['telegram_id'], res))
-	return list(map(lambda x: {'pid': x['pid'], 'name': string.capwords(x['name'].strip()), 'telegram_id': x['telegram_id']}, res))
+	res = players.get('A2:C')
+	filteredWithTelegramId = list(filter(lambda x: len(x) == 3 and can_convert_to_int(x[2]), res))
+	return list(map(lambda x: {'pid': int(x[0]), 'name': string.capwords(x[1].strip()), 'telegram_id': int(x[2])}, filteredWithTelegramId))
 
 def get_venue_list():
 	sh = connect_spreadsheet()
 	venue = sh.worksheet('venue')
-	res = venue.get_all_records()
-	filtered = list(filter(lambda x: int(x['status']), res))
-	return list(map(lambda x: {'vid': x['vid'], 'name': x['name']}, filtered))
+	res = venue.get('A2:C')
+	filtered = list(filter(lambda x: len(x) == 3 and int(x[2]), res))
+	return list(map(lambda x: {'vid': int(x[0]), 'name': x[1]}, filtered))
 
 def get_mode_list():
 	sh = connect_spreadsheet()
 	mode = sh.worksheet('mode')
-	res = mode.get_all_records()
-	filtered = list(filter(lambda x: int(x['status']), res))
-	return list(map(lambda x: {'mid': x['mid'], 'name': x['name'], 'vid': x['vid']}, filtered))
+	res = mode.get('A2:D')
+	filtered = list(filter(lambda x: len(x) == 4 and int(x[3]), res))
+	return list(map(lambda x: {'mid': int(x[0]), 'name': x[2], 'vid': int(x[1])}, filtered))
 
 def get_last_id(worksheet):
 	res = worksheet.col_values(1)
