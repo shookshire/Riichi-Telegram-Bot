@@ -254,7 +254,7 @@ def set_player_by_name(update, context):
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
   
-  reply_keyboard = [['Re-enter Names', 'Proceed']]
+  reply_keyboard = [['Proceed', 'Re-enter Names']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
   update.message.reply_text(
     "`East : {}\n"
