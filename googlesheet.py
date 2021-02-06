@@ -2,9 +2,10 @@ import gspread
 import string
 from threading import Thread, Lock
 import copy
+import push_msg
 
 from datetime import datetime
-from config import SPREADSHEET_CONFIG
+from config import SPREADSHEET_CONFIG, MAIN_ADMIN
 from log_helper import logger
 import helper_functions as func
 import googlesheet_helper_func as gfunc
@@ -48,19 +49,25 @@ def get_last_id(worksheet):
 	return int(res[-1]) if len(res) > 1 else 0
 
 def set_game(update, game, timeout=False):
-	mutex.acquire()
+	try:
+		logger.info("Attempting to save game.")
+		mutex.acquire()
 
-	gid = set_game_info(game, timeout)
-	set_game_result(game, gid)
-	set_hand_info(game, gid)
+		gid = set_game_info(game, timeout)
+		set_game_result(game, gid)
+		set_hand_info(game, gid)
+		mutex.release()
+		logger.info("gid {} have been saved. Timeout={}".format(gid, timeout))
 
-	gfunc.print_final_outcome(update, game, gid)
+		gfunc.print_final_outcome(update, game, gid)
 
-	logger.info("gid {} have been saved. Timeout={}".format(gid, timeout))
-
-	mutex.release()
-
-	return gid
+		logger.info("Finish informing players of game outcome.")
+	except:
+		logger.error('Failed to save game.')
+		for admin_id in MAIN_ADMIN:
+			push_msg.send_msg('Notice to admins: A game have failed to be recorded properly', admin_id)
+		if mutex.locked():
+			mutex.release()
 
 def set_game_thread(update, game, timeout=False):
 	thread = Thread(target=set_game, args=(update, copy.copy(game), timeout))

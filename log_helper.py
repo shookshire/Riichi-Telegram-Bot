@@ -20,7 +20,7 @@ logger=logging.getLogger('riichi_app_log')
 def catch_error(f):
   @wraps(f)
   def wrap(update, context):
-    logger.info("User {user} Sent {message}".format(user=update.message.chat.id, message=update.message.text))
+    logger.debug("User {user} Sent {message}".format(user=update.message.chat.id, message=update.message.text))
     try:
       return f(update, context)
     except Exception as e:

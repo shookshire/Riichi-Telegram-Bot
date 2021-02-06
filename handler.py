@@ -15,6 +15,7 @@ import googlesheet
 from constants import *
 from log_helper import catch_error
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
+from threading import Thread, Lock
 
 @catch_error
 def helper(update, context):
@@ -41,10 +42,8 @@ def get_googlesheet_data(update, context):
 
   return ConversationHandler.END
 
-
 @catch_error
 def get_telegram_id(update, context):
-
   update.message.reply_text('telegram id: {}'.format(update.message.chat.id))
   return ConversationHandler.END
 
@@ -1167,16 +1166,13 @@ def discard_result_only_game(update, context):
   return ConversationHandler.END
 
 def confirm_delete_last_hand(update, context):
-  print('delete')
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-  print('delete3')
 
   update.message.reply_text(
     "`Delete last hand?`",
     parse_mode=ParseMode.MARKDOWN_V2, 
     reply_markup=markup)
-  print('delete2')
 
   return DELETE_LAST_HAND
 

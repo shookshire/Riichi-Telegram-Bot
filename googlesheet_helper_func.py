@@ -1,5 +1,6 @@
 import helper_functions as func
 from telegram import ReplyKeyboardMarkup, ParseMode
+from log_helper import logger
 import push_msg
 
 def check_valid_name_from_list(name, player_list):
@@ -23,4 +24,7 @@ def print_final_outcome(update, game, gid):
 
 	for player in players:
 		if player['telegram_id']:
-			push_msg.send_msg(func.print_game_confirmation(gid, final_score_text), player['telegram_id'])
+			try:
+				push_msg.send_msg(func.print_game_confirmation(gid, final_score_text), player['telegram_id'])
+			except:
+				logger.error("Failed to send game confirmation to {}".format(player['telegram_id']))
