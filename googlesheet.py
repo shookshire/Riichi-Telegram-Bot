@@ -62,8 +62,9 @@ def set_game(update, game, timeout=False):
 		gfunc.print_final_outcome(update, game, gid)
 
 		logger.info("Finish informing players of game outcome.")
-	except:
+	except Exception as e:
 		logger.error('Failed to save game.')
+		logger.error(e)
 		for admin_id in MAIN_ADMIN:
 			push_msg.send_msg('Notice to admins: A game have failed to be recorded properly', admin_id)
 		if mutex.locked():
