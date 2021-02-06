@@ -564,7 +564,7 @@ def set_oka(update, context):
   return return_select_edit_settings(update, user_data)
 
 def return_next_command(update, text):
-  reply_keyboard = [['New Hand', 'End Game'], ['Delete Last Hand']]
+  reply_keyboard = [['New Hand', 'End Game'], ['Delete Last Hand', 'Cancel Game']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -1191,6 +1191,19 @@ def delete_last_hand(update, context):
       hands.pop()
 
   return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+
+
+@catch_error
+def confirm_cancel_game(update, context):
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+    "`Cancel Game?\nThe game's result will not be recorded.`",
+    parse_mode=ParseMode.MARKDOWN_V2, 
+    reply_markup=markup)
+
+  return CANCEL_GAME
 
 @catch_error
 def quit(update, context):

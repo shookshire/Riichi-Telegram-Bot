@@ -144,10 +144,14 @@ def main():
       SELECT_NEXT_COMMAND: [
         MessageHandler(Filters.regex('^New Hand$'), handler.add_new_hand),
         MessageHandler(Filters.regex('^End Game$'), handler.end_game),
-        MessageHandler(Filters.regex('^Delete Last Hand$'), handler.confirm_delete_last_hand)
+        MessageHandler(Filters.regex('^Delete Last Hand$'), handler.confirm_delete_last_hand),
+        MessageHandler(Filters.regex('^Cancel Game$'), handler.confirm_cancel_game)
       ],
       DELETE_LAST_HAND: [
         MessageHandler(Filters.regex('^(Yes|No)$'), handler.delete_last_hand)
+      ],
+      CANCEL_GAME: [
+        MessageHandler(Filters.regex('^(Yes|No)$'), handler.quit)
       ],
       SET_HAND_OUTCOME: [
         MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Chombo)$'), handler.set_hand_outcome)
