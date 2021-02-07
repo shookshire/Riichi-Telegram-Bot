@@ -98,7 +98,7 @@ def set_game_info(game, timeout=False):
 		game['mode']['mid'],
 		duration
 	]
-	worksheet.append_row(row)
+	worksheet.append_row(row, value_input_option='USER_ENTERED')
 	return gid
 
 def set_game_result(game, gid):
@@ -114,7 +114,7 @@ def set_game_result(game, gid):
 			game['position'][i],
 			game['penalty'][i]
 		]
-		worksheet.append_row(row)
+		worksheet.append_row(row, value_input_option='USER_ENTERED')
 
 def set_hand_info(game, gid):
 	sh = connect_spreadsheet()
@@ -138,7 +138,7 @@ def set_hand_info(game, gid):
 			hand['fu'],
 			hand['value']
 		]
-		worksheet.append_row(row)
+		worksheet.append_row(row, value_input_option='USER_ENTERED')
 		set_hand_result(hand, gid, hid, game['players'])
 
 def set_hand_result(hand, gid, hid, players):
@@ -167,7 +167,7 @@ def set_hand_result(hand, gid, hid, players):
 			hand['score change'][i],
 			int(hand['chombo'][i])
 		]
-		worksheet.append_row(row)
+		worksheet.append_row(row, value_input_option='USER_ENTERED')
 
 def set_record_game(game):
 	gid = set_record_game_info(game)
