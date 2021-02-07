@@ -594,8 +594,10 @@ def start_game(update, context):
     user_data['date'] = start_date
   else:
     user_data['id'] = 0
-    user_data['date'] = datetime.now().strftime("%d-%m-%Y")
-    user_data['time'] = datetime.now().strftime('%M:%S.%f')[:-4]
+    start_date = datetime.now()
+    user_data['date'] = start_date.strftime("%d-%m-%Y")
+    user_data['time'] = start_date.strftime('%H:%M:%S.%f')[:-4]
+    user_data['datetime'] = start_date
 
   user_data['hands'] = []
   user_data['penalty'] = [0,0,0,0]
@@ -1111,6 +1113,7 @@ def save_complete_game(update, context):
           push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
     elif SPREADSHEET_CONFIG['in_use']:
       update.message.reply_text("`The game result is being submitted`", parse_mode=ParseMode.MARKDOWN_V2)
+      user_data['duration'] = (datetime.now() - user_data['datetime']).total_seconds()
       gid = googlesheet.set_game_thread(update, user_data)
 
   user_data.clear()

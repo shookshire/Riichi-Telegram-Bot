@@ -80,6 +80,8 @@ def set_game_info(game, timeout=False):
 	last_id= get_last_id(worksheet)
 	gid = last_id + 1
 
+	duration = divmod(game['duration'], 60)[0]
+
 	row = [
 		gid,
 		game['date'],
@@ -93,7 +95,8 @@ def set_game_info(game, timeout=False):
 		game['uma'][3],
 		game['oka'],
 		game['venue']['vid'],
-		game['mode']['mid']
+		game['mode']['mid'],
+		duration
 	]
 	worksheet.append_row(row)
 	return gid
