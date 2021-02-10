@@ -13,7 +13,7 @@ import googlesheet_helper_func as gfunc
 import db
 import googlesheet
 from constants import *
-from log_helper import catch_error
+from log_helper import catch_error, logger
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
 from threading import Thread, Lock
 
@@ -39,6 +39,8 @@ def get_googlesheet_data(update, context):
     bot_data['venue_list'] = googlesheet.get_venue_list()
     bot_data['mode_list'] = googlesheet.get_mode_list()
     update.message.reply_text('finish updating data')
+
+  logger.trace('Data has been populated.')
 
   return ConversationHandler.END
 

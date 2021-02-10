@@ -25,6 +25,7 @@ import handler
 import mcr_handler
 from config import BOT_CONFIG
 from constants import *
+from log_helper import logger
 
 def main():
   # Create the Updater and pass it your bot's token.
@@ -268,6 +269,7 @@ def main():
   updater.start_polling()
 
   print('App has started running')
+  logger.trace("App has started running")
 
   # Run the bot until you press Ctrl-C or the process receives SIGINT,
   # SIGTERM or SIGABRT. This should be used most of the time, since
