@@ -44,7 +44,8 @@ def get_googlesheet_data(update, context):
 
 @catch_error
 def get_telegram_id(update, context):
-  update.message.reply_text('telegram id: {}'.format(update.message.chat.id))
+  update.message.reply_text('telegram id:')
+  update.message.reply_text('{}'.format(update.message.chat.id))
   return ConversationHandler.END
 
 @catch_error
@@ -55,7 +56,8 @@ def get_sgriichi_id(update, context):
 
   filtered = list(filter(lambda x: x['telegram_id'] == telegram_id, player_list))
   if len(filtered):
-    update.message.reply_text('SgRiichi id: {}'.format(filtered[0]['pid']))
+    update.message.reply_text('SgRiichi id:')
+    update.message.reply_text('{}'.format(filtered[0]['pid']))
   else:
     update.message.reply_text('Your telegram id has not been registered. If you have already signed up with SgRiichi, please contact @MrFeng or other SgRiichi admins.')
 
