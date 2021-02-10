@@ -13,7 +13,6 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-import logging
 import re
 import numpy as np
 import string
@@ -26,15 +25,6 @@ import handler
 import mcr_handler
 from config import BOT_CONFIG
 from constants import *
-
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
-logger = logging.getLogger(__name__)
-
-def error(update, context):
-  logger.warning('update "%s" caused error "%s"', update, context.error)
 
 def main():
   # Create the Updater and pass it your bot's token.
@@ -272,7 +262,7 @@ def main():
   )
 
   dp.add_handler(conv_handler)
-  dp.add_handler(conv_handler_mcr)
+  dp.add_handler(conv_handler_mcr, 1)
 
   # Start the Bot
   updater.start_polling()

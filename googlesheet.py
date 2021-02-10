@@ -50,18 +50,18 @@ def get_last_id(worksheet):
 
 def set_game(update, game, timeout=False):
 	try:
-		logger.info("Attempting to save game.")
+		logger.trace("Attempting to save game.")
 		mutex.acquire()
 
 		gid = set_game_info(game, timeout)
 		set_game_result(game, gid)
 		set_hand_info(game, gid)
 		mutex.release()
-		logger.info("gid {} have been saved. Timeout={}".format(gid, timeout))
+		logger.trace("gid {} have been saved. Timeout={}".format(gid, timeout))
 
 		gfunc.print_final_outcome(update, game, gid)
 
-		logger.info("Finish informing players of game outcome.")
+		logger.trace("Finish informing players of game outcome.")
 	except Exception as e:
 		logger.error('Failed to save game.')
 		logger.error(e)
