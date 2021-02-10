@@ -51,6 +51,10 @@ def get_last_id(worksheet):
 def set_game(update, game, timeout=False):
 	try:
 		logger.trace("Attempting to save game.")
+		game_for_logging = copy.copy(game)
+		game_for_logging.pop('mode_list', None)
+		game_for_logging.pop('venue_list', None)
+		logger.trace("Game data: {}".format(game_for_logging))
 		mutex.acquire()
 
 		gid = set_game_info(game, timeout)
