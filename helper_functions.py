@@ -513,7 +513,7 @@ def print_game_confirmation(gid, final_score_text):
 
 	return text
 
-def print_end_game_result(gid, player_names, score, position):
+def print_end_game_result(gid, player_names, score, position, initial_value):
 	
 	max_name_len = get_max_len(player_names)
 	res = []
@@ -525,7 +525,7 @@ def print_end_game_result(gid, player_names, score, position):
 	text = '`Game id: {}\n\n`'.format(gid)
 	text += '`'
 	for obj in res:
-		text += '{}'.format(obj['name']).ljust(max_name_len + 1) + '| {}'.format(obj['score']).ljust(7) + '| {}\n'.format(obj['position'])
+		text += '{}'.format(obj['name']).ljust(max_name_len) + '|{}'.format(obj['score']) + '|{}'.format(obj['position']) + '|{}\n'.format(obj['score'] - initial_value)
 	text += '`'
 
 	return text

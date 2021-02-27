@@ -1123,7 +1123,7 @@ def save_complete_game(update, context):
   if user_data['recorded']:
     if DB_CONFIG['in_use']:
       db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
-      final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
+      final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'], user_data['initial value'])
       update.message.reply_text("`Game has been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
       for player in players:
         if player['telegram_id']:
@@ -1170,7 +1170,7 @@ def save_result_only_game(update, context):
 
   update.message.reply_text("`Game has been saved.`", parse_mode=ParseMode.MARKDOWN_V2)
 
-  final_score_text = func.print_end_game_result(gid, player_names, user_data['final score'], user_data['position'])
+  final_score_text = func.print_end_game_result(gid, player_names, user_data['final score'], user_data['position'], user_data['initial value'])
 
   for player in players:
     if not player['telegram_id'] is None:
@@ -1247,7 +1247,7 @@ def timeout(update, context):
       player_names = func.get_all_player_name(user_data['players'])
 
       db.set_complete_game(user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
-      final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'])
+      final_score_text = func.print_end_game_result(user_data['id'], player_names, user_data['final score'], user_data['position'], user_data['initial value'])
 
       update.message.reply_text("`Game have timeout and is assumed to be completed\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
       
