@@ -712,6 +712,19 @@ def set_hand_outcome(update, context):
   text = update.message.text
 
   new_hand['outcome'] = text
+
+  if text == 'Mid Game Draw':
+    reply_keyboard = [['Save', 'Discard']]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+      func.print_hand_settings(new_hand, player_names)
+      + '`\nIs this setting ok?`',
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+    return PROCESS_HAND
+    
   if text == 'Draw':
     return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI, '`Who is in Tenpai?`')
 
@@ -893,7 +906,7 @@ def set_riichi_done(update, context):
   new_hand = user_data['new hand']
   player_names = func.get_all_player_name(user_data['players'])
 
-  reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Chombo']]
+  reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Mid Game Draw'], ['Chombo']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(

@@ -145,7 +145,7 @@ def main():
         MessageHandler(Filters.regex('^(Yes|No)$'), handler.quit)
       ],
       SET_HAND_OUTCOME: [
-        MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Chombo)$'), handler.set_hand_outcome)
+        MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Mid Game Draw|Chombo)$'), handler.set_hand_outcome)
       ],
       SET_WINNER: [
         MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_winner)
@@ -154,7 +154,7 @@ def main():
         MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_loser)
       ],
       SET_DRAW_TENPAI: [
-        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_draw_tenpai),
+        MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit|Done|Mid Game Draw)$')), handler.set_draw_tenpai),
         MessageHandler(Filters.regex('^Done$'), handler.set_draw_tenpai_done)
       ],
       SET_HAN: [

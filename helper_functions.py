@@ -77,7 +77,12 @@ def process_chombo_hand(hand, chombo_value, chombo_option):
 	hand['position'] = get_position(hand['final score'])
 
 def process_hand(hand, kiriage):
-	score_change, pool = get_total_score_change(hand, kiriage)
+	score_change = [0,0,0,0]
+	pool = hand['pool']
+
+	if not hand['outcome'] == 'Mid Game Draw':
+		score_change, pool = get_total_score_change(hand, kiriage)
+
 	hand['score change'] = score_change
 	hand['pool'] = pool
 	hand['final score'] = get_new_score(hand['initial score'], score_change)
@@ -112,6 +117,9 @@ def get_next_hand_wind_round_honba(prev_hand):
 
 	if prev_hand['outcome'] == 'Chombo':
 		return wind, round_num, honba
+
+	if prev_hand['outcome'] == 'Mid Game Draw':
+		return wind, round_num, honba + 1
 
 	if is_renchan(prev_hand):
 		honba += 1
@@ -335,6 +343,8 @@ def get_individual_outcome(hand):
 		outcome[hand['winner idx']] = 'Ron'
 		outcome[hand['loser idx']] = 'Deal-in'
 		return outcome 
+	if hand['outcome'] == 'Mid Game Draw':
+		return ['Mid Game Draw']*4
 
 def get_max_len(lst):
 	return max([len(x) for x in lst])
@@ -396,6 +406,10 @@ def print_hand_settings(hand, player_names):
 		return text
 
 	text += '`Outcome: {}\n\n`'.format(hand['outcome'])
+
+	if hand['outcome'] == 'Mid Game Draw':
+		return text
+
 	if hand['outcome'] == 'Draw':
 		text += '`Who Tenpai:\n`'
 		text += print_select_names(player_names, hand['tenpai'])
