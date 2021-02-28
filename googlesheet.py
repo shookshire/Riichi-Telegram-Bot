@@ -45,8 +45,8 @@ def get_mode_list():
 	return list(map(lambda x: {'mid': int(x[0]), 'name': x[2], 'vid': int(x[1])}, filtered))
 
 def get_last_id(worksheet):
-	res = worksheet.col_values(1)
-	return int(res[-1]) if len(res) > 1 else 0
+	row_count = worksheet.row_count
+	return int(worksheet.acell('A{}'.format(row_count)).value)
 
 def set_game(update, game, timeout=False):
 	try:
