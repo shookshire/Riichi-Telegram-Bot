@@ -58,8 +58,11 @@ def set_game(update, game, timeout=False):
 		mutex.acquire()
 
 		gid = set_game_info(game, timeout)
+		logger.trace("gid {} set game info completed".format(gid))
 		set_game_result(game, gid)
+		logger.trace("gid {} set game result completed".format(gid))
 		set_hand_info(game, gid)
+		logger.trace("gid {} set hand info completed".format(gid))
 		mutex.release()
 		logger.trace("gid {} have been saved. Timeout={}".format(gid, timeout))
 
