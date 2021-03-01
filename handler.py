@@ -855,7 +855,7 @@ def set_draw_tenpai(update, context):
   tenpai[player_idx] = not tenpai[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI, 
-    '`Players who are in tenpai:\n-----------------------------\n`'
+    '`Players who are in tenpai:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
     + func.print_select_names(player_names, tenpai)
     + '`\nWho is in Tenpai?`')
 
@@ -884,7 +884,7 @@ def set_riichi(update, context):
   riichi[player_idx] = not riichi[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_RIICHI, 
-    '`Players who riichi:\n-----------------------------\n`'
+    '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
     + func.print_select_names(player_names, riichi)
     + '`\nWho riichi?`')
 
@@ -931,7 +931,7 @@ def set_chombo(update, context):
   chombo[player_idx] = not chombo[player_idx]
 
   return return_4_player_done_option(update, player_names, SET_CHOMBO, 
-    '`Players who Chombo:\n-----------------------------\n`'
+    '`Players who Chombo:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
     + func.print_select_names(player_names, chombo)
     + '`\nWho Chombo?`')
 
