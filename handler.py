@@ -12,10 +12,31 @@ import helper_functions as func
 import googlesheet_helper_func as gfunc
 import db
 import googlesheet
-from constants import *
 from log_helper import catch_error, logger
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
 from threading import Thread, Lock
+
+from constants import SEAT_NAME, BLOCKED_NAMES
+
+#Pre-settings for recorded game
+from constants import SET_RECORDED_GAME
+
+#Set host and season
+from constants import SET_VENUE, SET_MODE, CONFIRM_VENUE_MODE
+#Setting of players
+from constants import SET_PLAYER_NAME, CONFIRM_PLAYER_NAME
+
+#Setting game settings
+from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE ,SET_ATAMAHANE, CONFIRM_GAME_SETTINGS
+
+#Updating new hand
+from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON 
+
+#Confirm game end
+from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
+
+#Saving result only
+from constants import SET_PLAYER_SCORE, SET_LEFTOVER_POOL, CONFIRM_RESULT_ONLY, SAVE_RESULT_ONLY 
 
 @catch_error
 def helper(update, context):
@@ -1125,7 +1146,7 @@ def save_complete_game(update, context):
     elif SPREADSHEET_CONFIG['in_use']:
       update.message.reply_text("`The game result is being submitted`", parse_mode=ParseMode.MARKDOWN_V2)
       user_data['duration'] = (datetime.now() - user_data['datetime']).total_seconds()
-      gid = googlesheet.set_game_thread(update, user_data)
+      googlesheet.set_game_thread(update, user_data)
 
   user_data.clear()
   return ConversationHandler.END
@@ -1173,6 +1194,7 @@ def save_result_only_game(update, context):
 
 @catch_error
 def discard_result_only_game(update, context):
+  user_data = context.user_data
   update.message.reply_text("`Game settings have been discarded`", parse_mode=ParseMode.MARKDOWN_V2)
   user_data.clear()
   return ConversationHandler.END
@@ -1248,7 +1270,7 @@ def timeout(update, context):
           push_msg.send_msg(func.print_game_confirmation(user_data['id'], final_score_text), player['telegram_id'])
     elif SPREADSHEET_CONFIG['in_use']:
       update.message.reply_text("`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
-      gid = googlesheet.set_game_thread(update, user_data, True)
+      googlesheet.set_game_thread(update, user_data, True)
 
   else:
     update.message.reply_text("`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
