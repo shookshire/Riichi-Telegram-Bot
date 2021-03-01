@@ -80,8 +80,7 @@ def process_hand(hand, kiriage):
 	score_change = [0,0,0,0]
 	pool = hand['pool']
 
-	if not hand['outcome'] == 'Mid Game Draw':
-		score_change, pool = get_total_score_change(hand, kiriage)
+	score_change, pool = get_total_score_change(hand, kiriage)
 
 	hand['score change'] = score_change
 	hand['pool'] = pool
@@ -219,7 +218,7 @@ def get_new_score(prev_score, score_change):
   return [x + y for x, y in zip(score_change, prev_score)]
 
 def get_total_score_change(hand, kiriage):
-  score_change = get_tsumo_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Tsumo' else get_ron_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Ron' else get_draw_score_change(hand)
+  score_change = get_tsumo_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Tsumo' else get_ron_score_change(hand, hand['honba'], kiriage) if hand['outcome'] == 'Ron' else get_draw_score_change(hand) if hand['outcome'] == 'Draw' else [0,0,0,0]
   stick_score_change, new_pool = get_riichi_stick_change(hand, hand['pool'])
 
   return [x + y for x, y in zip(score_change, stick_score_change)], new_pool
