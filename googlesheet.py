@@ -140,6 +140,7 @@ def set_hand_info(game, gid):
   sh = connect_spreadsheet()
   worksheet = sh.worksheet('hand_info')
   hid = get_last_id(worksheet)
+  logger.trace("gid {} get last hand info id".format(gid))
   hands = game['hands']
 
   for i in range(len(hands)):
@@ -166,6 +167,7 @@ def set_hand_result(hand, gid, hid, players):
   sh = connect_spreadsheet()
   worksheet = sh.worksheet('hand_result')
   ihid = get_last_id(worksheet)
+  logger.trace("gid {} get last hand result id".format(gid))
 
   oya = [False]*4
   oya[hand['round num'] - 1] = True
