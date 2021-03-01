@@ -32,7 +32,7 @@ def set_player_by_name(update, context):
 
   if player_info in players:
     update.message.reply_text("`This player has already been entered`",
-    	parse_mode=ParseMode.MARKDOWN_V2)
+      parse_mode=ParseMode.MARKDOWN_V2)
     return MCR_SET_PLAYER_NAME
 
   players.append(player_info)
@@ -55,7 +55,7 @@ def set_player_by_name(update, context):
       func.get_player_name(players[1]), 
       func.get_player_name(players[2]), 
       func.get_player_name(players[3])),
-		parse_mode=ParseMode.MARKDOWN_V2,
+    parse_mode=ParseMode.MARKDOWN_V2,
     reply_markup=markup)
   return MCR_CONFIRM_PLAYER_NAME
 
@@ -92,15 +92,15 @@ def confirm_player_name(update, context):
 
 @catch_error
 def delete_last_hand(update, context):
-	user_data = context.user_data
+  user_data = context.user_data
 
-	hands = user_data['hands']
-	hands.pop()
-	if len(hands) > 0:
-		hands.pop()
+  hands = user_data['hands']
+  hands.pop()
+  if len(hands) > 0:
+    hands.pop()
 
-	mcr_func.generate_new_hand(hands, user_data['players'])
-	return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
+  mcr_func.generate_new_hand(hands, user_data['players'])
+  return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
 
 @catch_error
 def confirm_end_game(update, context):
@@ -116,18 +116,18 @@ def confirm_end_game(update, context):
 
 @catch_error
 def end_game(update, context):
-	user_data = context.user_data
-	text = update.message.text
+  user_data = context.user_data
+  text = update.message.text
 
-	if text == 'No':
-		return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
+  if text == 'No':
+    return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
 
-	hand = user_data['hands'][-1]
-	update.message.reply_text(
-		'`The game has ended. Final score:\n\n`' +
-		mcr_func.print_score(hand['final score']),
-		parse_mode=ParseMode.MARKDOWN_V2)
-	return ConversationHandler.END
+  hand = user_data['hands'][-1]
+  update.message.reply_text(
+    '`The game has ended. Final score:\n\n`' +
+    mcr_func.print_score(hand['final score']),
+    parse_mode=ParseMode.MARKDOWN_V2)
+  return ConversationHandler.END
 
 @catch_error
 def set_draw_hand(update, context):
@@ -135,12 +135,12 @@ def set_draw_hand(update, context):
 
   have_next_hand = mcr_func.have_next_hand(user_data['hands'])
   if not have_next_hand:
-  	hand = user_data['hands'][-1]
-  	update.message.reply_text(
-  		'`The game has ended. Final score:\n\n`' +
-  		mcr_func.print_score(hand['final score']),
-  		parse_mode=ParseMode.MARKDOWN_V2)
-  	return ConversationHandler.END
+    hand = user_data['hands'][-1]
+    update.message.reply_text(
+      '`The game has ended. Final score:\n\n`' +
+      mcr_func.print_score(hand['final score']),
+      parse_mode=ParseMode.MARKDOWN_V2)
+    return ConversationHandler.END
 
   mcr_func.generate_new_hand(user_data['hands'], user_data['players'])
 
@@ -185,12 +185,12 @@ def set_winner(update, context):
   player_info = { 'name': name }
 
   if not {'name': name } in user_data['players']:
-  	return return_4_player_option(update, hand['initial score'], MCR_SET_WINNING_PLAYER, '`Please enter a valid player name.`')
+    return return_4_player_option(update, hand['initial score'], MCR_SET_WINNING_PLAYER, '`Please enter a valid player name.`')
 
   hand['winner'] = name
 
   if hand['outcome'] == 'Ron':
-  	return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Who deal in?`')
+    return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Who deal in?`')
 
   update.message.reply_text(
     '`What is the hand value?`',
@@ -208,10 +208,10 @@ def set_loser(update, context):
   player_info = { 'name': name }
 
   if not {'name': name } in user_data['players']:
-  	return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Please enter a valid player name.`')
+    return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Please enter a valid player name.`')
 
   if name == hand['winner']:
-  	return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Please enter a valid player name.`')
+    return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Please enter a valid player name.`')
 
   hand['loser'] = name
 
@@ -231,11 +231,11 @@ def set_hand_value(update, context):
   mcr_func.process_hand(hand, score_value)
   have_next_hand = mcr_func.have_next_hand(user_data['hands'])
   if not have_next_hand:
-  	update.message.reply_text(
-  		'`The game has ended. Final score:\n\n`' +
-  		mcr_func.print_score(hand['final score']),
-  		parse_mode=ParseMode.MARKDOWN_V2)
-  	return ConversationHandler.END
+    update.message.reply_text(
+      '`The game has ended. Final score:\n\n`' +
+      mcr_func.print_score(hand['final score']),
+      parse_mode=ParseMode.MARKDOWN_V2)
+    return ConversationHandler.END
 
   mcr_func.generate_new_hand(user_data['hands'])
   return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
