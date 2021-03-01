@@ -24,8 +24,31 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 import handler
 import mcr_handler
 from config import BOT_CONFIG
-from constants import *
 from log_helper import logger
+
+#Pre-settings for recorded game
+from constants import SET_RECORDED_GAME
+
+#Set host and season
+from constants import SET_VENUE, SET_MODE, CONFIRM_VENUE_MODE
+#Setting of players
+from constants import SET_PLAYER_NAME, CONFIRM_PLAYER_NAME
+
+#Setting game settings
+from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE ,SET_ATAMAHANE, CONFIRM_GAME_SETTINGS
+
+#Updating new hand
+from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON 
+
+#Confirm game end
+from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
+
+#Saving result only
+from constants import SET_PLAYER_SCORE, SET_LEFTOVER_POOL, CONFIRM_RESULT_ONLY, SAVE_RESULT_ONLY 
+
+#Mcr state
+from constants import MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_CONFIRM_GAME_END
+
 
 def main():
   # Create the Updater and pass it your bot's token.

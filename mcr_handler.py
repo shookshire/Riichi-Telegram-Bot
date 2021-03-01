@@ -8,7 +8,7 @@ from telegram import ReplyKeyboardMarkup, ParseMode
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
-from constants import *
+from constants import SEAT_NAME, MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_CONFIRM_GAME_END, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE
 
 @catch_error
 def start_new_game(update, context):
@@ -182,8 +182,6 @@ def set_winner(update, context):
   name = func.handle_name(text)
   hand = user_data['hands'][-1]
 
-  player_info = { 'name': name }
-
   if not {'name': name } in user_data['players']:
     return return_4_player_option(update, hand['initial score'], MCR_SET_WINNING_PLAYER, '`Please enter a valid player name.`')
 
@@ -204,8 +202,6 @@ def set_loser(update, context):
   text = update.message.text
   name = func.handle_name(text)
   hand = user_data['hands'][-1]
-
-  player_info = { 'name': name }
 
   if not {'name': name } in user_data['players']:
     return return_4_player_option(update, hand['initial score'], MCR_SET_DEAL_IN_PLAYER, '`Please enter a valid player name.`')

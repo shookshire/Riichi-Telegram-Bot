@@ -637,7 +637,6 @@ def set_player_score(update, context):
 def set_leftover_pool(update, context):
   user_data = context.user_data
   text = int(update.message.text)
-  player_names = func.get_all_player_name(user_data['players'])
 
   user_data['final pool'] = text
 
@@ -864,7 +863,6 @@ def set_draw_tenpai_done(update, context):
   user_data = context.user_data
   new_hand = user_data['new hand']
   player_names = func.get_all_player_name(user_data['players'])
-  tenpai = new_hand['tenpai']
 
   return return_save_discard_hand_option(update, new_hand, player_names)
 
@@ -902,10 +900,6 @@ def return_save_discard_hand_option(update, new_hand, player_names):
 
 @catch_error
 def set_riichi_done(update, context):
-  user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
-
   reply_keyboard = [['Tsumo', 'Ron'], ['Draw', 'Mid Game Draw'], ['Chombo']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -1139,8 +1133,6 @@ def save_complete_game(update, context):
 @catch_error
 def confirm_result_only_game(update, context):
   user_data = context.user_data
-  players = user_data['players']
-  player_names = func.get_all_player_name(players)
 
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)

@@ -1,3 +1,5 @@
+from constants import SEAT_NAME, MCR_SEAT_ORDER
+
 def generate_new_hand(hands, player_list=[]):
   if len(hands) == 0:
     new_hand = {

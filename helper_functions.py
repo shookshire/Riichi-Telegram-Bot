@@ -1,6 +1,6 @@
 import string
 import re
-from constants import *
+from constants import TSUMO_VALUE, RON_VALUE, TSUMO_OYA_VALUE, TSUMO_OYA_KIRIAGE_VALUE, TSUMO_KIRIAGE_VALUE, RON_OYA_VALUE, RON_OYA_KIRIAGE_VALUE, RON_KIRIAGE_VALUE
 
 def handle_name(name):
   return string.capwords(name.strip())
