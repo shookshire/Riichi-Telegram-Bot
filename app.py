@@ -168,7 +168,7 @@ def main():
         MessageHandler(Filters.regex('^(Yes|No)$'), handler.quit)
       ],
       SET_HAND_OUTCOME: [
-        MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Mid Game Draw|Chombo)$'), handler.set_hand_outcome)
+        MessageHandler(Filters.regex('^(Tsumo|Ron|Draw|Mid Game Draw|Nagashi Mangan|Chombo)$'), handler.set_hand_outcome)
       ],
       SET_WINNER: [
         MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_winner)
