@@ -56,13 +56,12 @@ def get_last_id(worksheet):
   return int(worksheet.acell('A{}'.format(row_count)).value)
 
 
-def set_game(update, game, timeout=False):
+def set_game(update, game, timeout=False, attempt=0):
   try:
+    gid = None
     logger.trace("Attempting to save game.")
-    game_for_logging = copy.copy(game)
-    game_for_logging.pop('mode_list', None)
-    game_for_logging.pop('venue_list', None)
-    logger.trace("Game data: {}".format(game_for_logging))
+    gfunc.log_game_data(game)
+
     mutex.acquire()
 
     gid = set_game_info(game, timeout)
@@ -81,10 +80,16 @@ def set_game(update, game, timeout=False):
     logger.error('Failed to save game.')
     logger.error(e)
     for admin_id in MAIN_ADMIN:
-      push_msg.send_msg(
-          'Notice to admins: A game have failed to be recorded properly', admin_id)
+      if gid:
+        push_msg.send_msg(
+            "Notice to admins: A game have failed to be recorded properly gid: {}".format(gid), admin_id)
+      else:
+        push_msg.send_msg(
+            "Notice to admins: A game have failed to be recorded properly", admin_id)
     if mutex.locked():
       mutex.release()
+    if attempt < 5:
+      set_game(update, game, timeout, attempt+1)
 
 
 def set_game_thread(update, game, timeout=False):
