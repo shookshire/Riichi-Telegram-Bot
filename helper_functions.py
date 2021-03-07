@@ -596,13 +596,14 @@ def print_result_only_game_settings(game):
 
 def print_game_confirmation(gid, final_score_text):
   text = '`Hi! A game have been recorded with you as a participant.\n\n`'
+  text += '`Game id: {}\n\n`'.format(gid)
   text += final_score_text
   text += '`\n\nIf you did not participate in this game please contact @MrFeng or other SgRiichi admins`'
 
   return text
 
 
-def print_end_game_result(gid, player_names, score, position, initial_value):
+def print_end_game_result(player_names, score, position, initial_value):
 
   max_name_len = get_max_len(player_names)
   res = []
@@ -612,8 +613,7 @@ def print_end_game_result(gid, player_names, score, position, initial_value):
 
   res = sorted(res, key=lambda k: k['position'])
 
-  text = '`Game id: {}\n\n`'.format(gid)
-  text += '`'
+  text = '`'
   for obj in res:
     text += '{}'.format(obj['name']).ljust(max_name_len) + '|{}'.format(obj['score']) + \
         '|{}'.format(obj['position']) + \

@@ -31,10 +31,7 @@ def print_final_outcome(update, game, gid):
   player_names = func.get_all_player_name(players)
 
   final_score_text = func.print_end_game_result(
-      gid, player_names, game['final score'], game['position'], game['initial value'])
-
-  update.message.reply_text("`Game have been completed.\n\n`" +
-                            final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+      player_names, game['final score'], game['position'], game['initial value'])
 
   for player in players:
     if player['telegram_id']:

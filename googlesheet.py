@@ -9,6 +9,7 @@ from config import SPREADSHEET_CONFIG, MAIN_ADMIN
 from log_helper import logger
 import helper_functions as func
 import googlesheet_helper_func as gfunc
+from telegram import ParseMode
 
 mutex = Lock()
 
@@ -58,6 +59,14 @@ def get_last_id(worksheet):
 
 def set_game(update, game, timeout=False, attempt=0):
   try:
+    players = game['players']
+    player_names = func.get_all_player_name(players)
+    final_score_text = func.print_end_game_result(
+        player_names, game['final score'], game['position'], game['initial value'])
+
+    update.message.reply_text("`Game have been completed.\n\n`" +
+                              final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+
     gid = None
     logger.trace("Attempting to save game.")
     gfunc.log_game_data(game)
