@@ -654,6 +654,7 @@ def start_game(update, context):
   user_data = context.user_data
 
   player_names = func.get_all_player_name(user_data['players'])
+  user_data['started'] = True
 
   if user_data['result only']:
     user_data['final score'] = []
@@ -1374,7 +1375,7 @@ def quit(update, context):
 def timeout(update, context):
   user_data = context.user_data
 
-  if user_data['recorded']:
+  if user_data['recorded'] and 'started' in user_data and user_data['started']:
     func.process_game(user_data)
     if DB_CONFIG['in_use'] and 'id' in user_data and user_data['id']:
       players = user_data['players']
@@ -1395,6 +1396,8 @@ def timeout(update, context):
     elif SPREADSHEET_CONFIG['in_use']:
       update.message.reply_text(
           "`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
+      user_data['duration'] = (
+          datetime.now() - user_data['datetime']).total_seconds()
       googlesheet.set_game_thread(update, user_data, True)
 
   else:
