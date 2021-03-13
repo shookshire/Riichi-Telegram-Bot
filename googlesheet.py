@@ -57,51 +57,58 @@ def get_last_id(worksheet):
   return int(worksheet.acell('A{}'.format(row_count)).value)
 
 
-def set_game(update, game, timeout=False, attempt=0):
+def write_data_to_google_sheets(game, timeout, attempt=0, failed_gid=[]):
+  gid = None
+  success = True
   try:
-    players = game['players']
-    player_names = func.get_all_player_name(players)
-    final_score_text = func.print_end_game_result(
-        player_names, game['final score'], game['position'], game['initial value'])
-
-    update.message.reply_text("`Game have been completed.\n\n`" +
-                              final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
-
-    gid = None
-    logger.trace("Attempting to save game.")
-    gfunc.log_game_data(game)
-
-    mutex.acquire()
-
     gid = set_game_info(game, timeout)
     logger.trace("gid {} set game info completed".format(gid))
     set_game_result(game, gid)
     logger.trace("gid {} set game result completed".format(gid))
     set_hand_info(game, gid)
     logger.trace("gid {} set hand info completed".format(gid))
-    mutex.release()
     logger.trace("gid {} have been saved. Timeout={}".format(gid, timeout))
-
-    gfunc.print_final_outcome(update, game, gid)
-
-    logger.trace("Finish informing players of game outcome.")
   except Exception as e:
-    logger.error('Failed to save game.')
+    logger.error('Failed to save game. Attempt {}'.format(attempt))
     logger.error(e)
-    for admin_id in MAIN_ADMIN:
-      if gid:
-        push_msg.send_msg(
-            "Notice to admins: A game have failed to be recorded properly gid: {}".format(gid), admin_id)
-      else:
-        push_msg.send_msg(
-            "Notice to admins: A game have failed to be recorded properly", admin_id)
-    if mutex.locked():
-      mutex.release()
+    if not gid is None:
+      failed_gid.append(gid)
     if attempt < 5:
-      set_game(update, game, timeout, attempt+1)
+      success, failed_gid, gid = write_data_to_google_sheets(
+          game, timeout, attempt+1, failed_gid)
+    else:
+      success = False
+  finally:
+    return success, failed_gid, gid
+
+
+def set_game(update, game, timeout=False):
+  logger.trace("Attempting to save game.")
+  gfunc.log_game_data(game)
+
+  mutex.acquire()
+
+  success, failed_gid, gid = write_data_to_google_sheets(game, timeout)
+
+  mutex.release()
+
+  if success:
+    gfunc.print_final_outcome(update, game, gid)
+    logger.trace("Finish informing players of game outcome.")
+
+  for admin_id in MAIN_ADMIN:
+    if failed_gid:
+      push_msg.send_msg(
+          "Notice to admins: The following gid have failed halfway through the submission please delete these games manually: {}".format(', '.join([str(x) for x in failed_gid])), admin_id)
+    if not success:
+      players = game['players']
+      player_names = func.get_all_player_name(players)
+      push_msg.send_msg(
+          "Notice to admins: A game with the following players have failed to be submitted successfully even after 5 retries: {}".format(', '.join(player_names)), admin_id)
 
 
 def set_game_thread(update, game, timeout=False):
+  gfunc.send_game_result(update, game)
   thread = Thread(target=set_game, args=(update, copy.copy(game), timeout))
   thread.start()
 

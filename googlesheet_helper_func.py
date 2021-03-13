@@ -26,6 +26,16 @@ def log_game_data(game):
   logger.trace("Game data: {}".format(game_for_logging))
 
 
+def send_game_result(update, game):
+  players = game['players']
+  player_names = func.get_all_player_name(players)
+  final_score_text = func.print_end_game_result(
+      player_names, game['final score'], game['position'], game['initial value'])
+
+  update.message.reply_text("`Game have been completed.\n\n`" +
+                            final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
+
+
 def print_final_outcome(update, game, gid):
   players = game['players']
   player_names = func.get_all_player_name(players)
