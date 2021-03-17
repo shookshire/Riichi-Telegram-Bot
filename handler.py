@@ -1,6 +1,4 @@
 import re
-import numpy as np
-import string
 
 from datetime import datetime
 from telegram import ReplyKeyboardMarkup, ParseMode
@@ -8,10 +6,8 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
 import push_msg
-import helper_functions as func
-import googlesheet_helper_func as gfunc
-import db
-import googlesheet
+from helper_functions import print_end_game_result, print_game_confirmation, print_select_names
+from googlesheet import Googlesheets
 from log_helper import catch_error, logger
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
 from threading import Thread, Lock
@@ -35,8 +31,13 @@ from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HA
 # Confirm game end
 from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
 
-# Saving result only
-from constants import SET_PLAYER_SCORE, SET_LEFTOVER_POOL, CONFIRM_RESULT_ONLY, SAVE_RESULT_ONLY
+from players import Players
+from location import Location
+from game import Game
+
+
+def format_text_for_telegram(str):
+  return '`' + str + '`'
 
 
 @catch_error
@@ -58,6 +59,7 @@ def helper(update, context):
 def get_googlesheet_data(update, context):
   bot_data = context.bot_data
   if SPREADSHEET_CONFIG['in_use'] and update.message.chat.id in ADMIN:
+    googlesheet = Googlesheets()
     bot_data['player_list'] = googlesheet.get_player_list()
     bot_data['venue_list'] = googlesheet.get_venue_list()
     bot_data['mode_list'] = googlesheet.get_mode_list()
@@ -96,8 +98,7 @@ def get_sgriichi_id(update, context):
 @catch_error
 def start_new_game(update, context):
   user_data = context.user_data
-  user_data['result only'] = False
-  user_data['players'] = []
+  user_data['recorded'] = False
 
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -111,17 +112,15 @@ def start_new_game(update, context):
 
 
 @catch_error
-def start_input_game_result(update, context):
+def set_not_recorded_Game(update, context):
   user_data = context.user_data
-  user_data['result only'] = True
-  user_data['recorded'] = True
-  user_data['players'] = []
-  user_data['final score'] = []
-  user_data['penalty'] = [0, 0, 0, 0]
-  user_data['final pool'] = 0
+  bot_data = context.bot_data
+  user_data['recorded'] = False
+  user_data['location'] = None
+  user_data['players'] = Players(bot_data['player_list'], True)
 
   update.message.reply_text(
-      '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
+      '`Please enter {} player name:`'.format(SEAT_NAME[0]),
       parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_NAME
@@ -133,14 +132,11 @@ def set_recorded_game(update, context):
   bot_data = context.bot_data
   user_data['recorded'] = True
 
-  if DB_CONFIG['in_use']:
-    venue_list = db.get_all_venue()
-  elif SPREADSHEET_CONFIG['in_use']:
-    venue_list = bot_data['venue_list']
-  user_data['venue_list'] = venue_list
+  location = Location(bot_data['venue_list'], bot_data['mode_list'])
+  user_data['location'] = location
 
-  reply_keyboard = [[h['name'] for h in venue_list[i:i+2]]
-                    for i in range(0, len(venue_list), 2)]
+  reply_keyboard = [[h['name'] for h in location.venue_list[i:i+2]]
+                    for i in range(0, len(location.venue_list), 2)]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -152,29 +148,16 @@ def set_recorded_game(update, context):
 
 
 @catch_error
-def set_not_recorded_Game(update, context):
-  user_data = context.user_data
-  user_data['recorded'] = False
-
-  update.message.reply_text(
-      '`Please enter {} player name:`'.format(SEAT_NAME[0]),
-      parse_mode=ParseMode.MARKDOWN_V2)
-
-  return SET_PLAYER_NAME
-
-
-@catch_error
 def set_game_venue(update, context):
   user_data = context.user_data
-  bot_data = context.bot_data
   text = update.message.text
-  venue_list = user_data['venue_list']
+  location = user_data['location']
 
-  check = list(filter(lambda h: h['name'] == text, venue_list))
-  if len(check) == 0:
+  success, _ = location.set_venue(text)
 
-    reply_keyboard = [[h['name'] for h in venue_list[i:i+2]]
-                      for i in range(0, len(venue_list), 2)]
+  if not success:
+    reply_keyboard = [[h['name'] for h in location.venue_list[i:i+2]]
+                      for i in range(0, len(location.venue_list), 2)]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
     update.message.reply_text(
@@ -184,15 +167,7 @@ def set_game_venue(update, context):
 
     return SET_VENUE
 
-  venue = check[0]
-  user_data['venue'] = venue
-
-  if DB_CONFIG['in_use']:
-    mode_list = db.get_mode_by_vid(venue['vid'])
-  elif SPREADSHEET_CONFIG['in_use']:
-    mode_list = gfunc.filter_mode_by_bid(
-        bot_data['mode_list'], venue['vid'])
-  user_data['mode_list'] = mode_list
+  mode_list = location.get_valid_mode()
 
   reply_keyboard = [[h['name'] for h in mode_list[i:i+2]]
                     for i in range(0, len(mode_list), 2)]
@@ -210,10 +185,12 @@ def set_game_venue(update, context):
 def set_game_mode(update, context):
   user_data = context.user_data
   text = update.message.text
-  mode_list = user_data['mode_list']
+  location = user_data['location']
 
-  check = list(filter(lambda h: h['name'] == text, mode_list))
-  if len(check) == 0:
+  success, _ = location.set_mode(text)
+
+  if not success:
+    mode_list = location.get_valid_mode()
     reply_keyboard = [[h['name'] for h in mode_list[i:i+2]]
                       for i in range(0, len(mode_list), 2)]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -225,15 +202,12 @@ def set_game_mode(update, context):
 
     return SET_MODE
 
-  mode = check[0]
-  user_data['mode'] = mode
-
   reply_keyboard = [['Confirm', 'Exit']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
       '`Venue: {}\nMode: {}\n\nIs this correct?`'.format(
-          user_data['venue']['name'], user_data['mode']['name']),
+          location.get_venue_name(), location.get_mode_name()),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
@@ -242,6 +216,9 @@ def set_game_mode(update, context):
 
 @catch_error
 def confirm_venue_mode(update, context):
+  user_data = context.user_data
+  bot_data = context.bot_data
+  user_data['players'] = Players(bot_data['player_list'], False)
   update.message.reply_text(
       '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
       parse_mode=ParseMode.MARKDOWN_V2)
@@ -262,56 +239,45 @@ def exit_venue_mode(update, context):
 @catch_error
 def set_player_by_name(update, context):
   user_data = context.user_data
-  bot_data = context.bot_data
   text = update.message.text
-  name = func.handle_name(text)
   players = user_data['players']
 
-  if name in BLOCKED_NAMES:
-    update.message.reply_text("`This player name is not allowed`",
-                              parse_mode=ParseMode.MARKDOWN_V2)
-    return SET_PLAYER_NAME
+  success, error = players.add_player(text)
 
-  if user_data['recorded']:
-    if DB_CONFIG['in_use']:
-      player_info = db.get_player_by_name(name)
-    elif SPREADSHEET_CONFIG['in_use']:
-      player_info = gfunc.check_valid_name_from_list(
-          name, bot_data['player_list'])
-
-    if player_info is None:
+  if not success:
+    if error == 'reserved':
+      update.message.reply_text("`This player name is not allowed`",
+                                parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
+    if error == 'invalid':
       update.message.reply_text("`Please enter a valid name`",
                                 parse_mode=ParseMode.MARKDOWN_V2)
       return SET_PLAYER_NAME
-  else:
-    player_info = {'pid': 0, 'name': name, 'telegram_id': None}
+    if error == 'duplicate':
+      update.message.reply_text("`This player has already been entered`",
+                                parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
 
-  if player_info in players:
-    update.message.reply_text("`This player has already been entered`",
-                              parse_mode=ParseMode.MARKDOWN_V2)
-    return SET_PLAYER_NAME
-
-  players.append(player_info)
-
-  if len(players) < 4:
+  if players.count() < 4:
     update.message.reply_text("`Player Name {} entered\n"
                               "Please enter {} player's name`".format(
-                                  func.get_player_name(player_info), SEAT_NAME[len(players)]),
+                                  players.get_name_list()[-1], SEAT_NAME[players.count()]),
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
 
   reply_keyboard = [['Proceed', 'Re-enter Names']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+  player_names = players.get_name_list()
   update.message.reply_text(
       "`East : {}\n"
       "South: {}\n"
       "West : {}\n"
       "North: {}\n\n"
       "Is this ok?`".
-      format(func.get_player_name(players[0]),
-             func.get_player_name(players[1]),
-             func.get_player_name(players[2]),
-             func.get_player_name(players[3])),
+      format(player_names[0],
+             player_names[1],
+             player_names[2],
+             player_names[3]),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
   return CONFIRM_PLAYER_NAME
@@ -320,63 +286,60 @@ def set_player_by_name(update, context):
 @catch_error
 def set_player_by_id(update, context):
   user_data = context.user_data
-  bot_data = context.bot_data
   text = update.message.text
   players = user_data['players']
 
-  if user_data['recorded']:
-    if DB_CONFIG['in_use']:
-      player_info = db.get_player_by_id(text)
-    elif SPREADSHEET_CONFIG['in_use']:
-      player_info = gfunc.check_valid_id_from_list(
-          int(text), bot_data['player_list'])
-
-    if player_info is None:
-      update.message.reply_text("`Please enter a valid id`",
-                                parse_mode=ParseMode.MARKDOWN_V2)
-      return SET_PLAYER_NAME
-  else:
-    player_info = {'id': 0, 'name': func.handle_name(
-        text), 'telegram_id': None}
-
-  if player_info in players:
-    update.message.reply_text("`This player has already been entered`",
+  if not user_data['recorded']:
+    update.message.reply_text("`Please enter a valid name`",
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
 
-  players.append(player_info)
+  success, error = players.add_player(None, text)
 
-  if len(players) < 4:
+  if not success:
+    if error == 'invalid':
+      update.message.reply_text("`Please enter a valid id`",
+                                parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
+    if error == 'duplicate':
+      update.message.reply_text("`This player has already been entered`",
+                                parse_mode=ParseMode.MARKDOWN_V2)
+      return SET_PLAYER_NAME
+
+  if players.count() < 4:
     update.message.reply_text("`Player Name {} entered\n"
                               "Please enter {} player's name`".format(
-                                  func.get_player_name(player_info), SEAT_NAME[len(players)]),
+                                  players.get_name_list()[-1], SEAT_NAME[players.count()]),
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_PLAYER_NAME
 
   reply_keyboard = [['Proceed', 'Re-enter Names']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+  player_names = players.get_name_list()
   update.message.reply_text(
       "`East : {}\n"
       "South: {}\n"
       "West : {}\n"
       "North: {}\n\n"
       "Is this ok?`".
-      format(func.get_player_name(players[0]),
-             func.get_player_name(players[1]),
-             func.get_player_name(players[2]),
-             func.get_player_name(players[3])),
+      format(player_names[0],
+             player_names[1],
+             player_names[2],
+             player_names[3]),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
   return CONFIRM_PLAYER_NAME
 
 
-@catch_error
+@ catch_error
 def confirm_player_name(update, context):
   user_data = context.user_data
+  bot_data = context.bot_data
   text = update.message.text
 
   if text == "Re-enter Names":
-    user_data['players'] = []
+    user_data['players'] = Players(
+        bot_data['player_list'], not user_data['recorded'])
 
     update.message.reply_text(
         '`Please enter {} player name or id number:`'.format(SEAT_NAME[0]),
@@ -384,16 +347,11 @@ def confirm_player_name(update, context):
 
     return SET_PLAYER_NAME
 
-  user_data['initial value'] = 250
-  user_data['aka'] = 'Aka-Ari'
-  user_data['uma'] = [15, 5, -5, -15]
-  user_data['oka'] = 0
-  user_data['chombo value'] = 40
-  user_data['chombo option'] = 'Payment to all'
-  user_data['kiriage'] = True
-  user_data['atamahane'] = True
+  game = Game(
+      user_data['players'], user_data['recorded'], user_data['location'])
+  user_data['game'] = game
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
 def return_select_edit_settings(update, game):
@@ -402,15 +360,15 @@ def return_select_edit_settings(update, game):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      '`Which settings would you like to edit?\n\n`'
-      + func.print_current_game_settings(game),
+      '`Which settings would you like to edit?\n\n{}`'.format(
+          game.print_game_settings()),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
   return SELECT_EDIT_SETTINGS
 
 
-@catch_error
+@ catch_error
 def select_edit_atamahane(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -423,18 +381,18 @@ def select_edit_atamahane(update, context):
   return SET_ATAMAHANE
 
 
-@catch_error
+@ catch_error
 def set_atamahane(update, context):
   user_data = context.user_data
   text = update.message.text
 
-  multiple_ron = text == 'Yes'
-  user_data['atamahane'] = not multiple_ron
+  game = user_data['game']
+  game.multiple_ron = text == 'Yes'
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_kiriage_mangan(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -447,18 +405,18 @@ def select_edit_kiriage_mangan(update, context):
   return SET_KIRIAGE
 
 
-@catch_error
+@ catch_error
 def set_kiriage_mangan(update, context):
   user_data = context.user_data
   text = update.message.text
 
-  kiriage = text == 'Yes'
-  user_data['kiriage'] = kiriage
+  game = user_data['game']
+  game.kiriage = text == 'Yes'
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_initial_value(update, context):
   reply_keyboard = [['250', '300']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -471,17 +429,18 @@ def select_edit_initial_value(update, context):
   return SET_INITIAL_VALUE
 
 
-@catch_error
+@ catch_error
 def set_initial_value(update, context):
   user_data = context.user_data
   text = update.message.text
 
-  user_data['initial value'] = int(text)
+  game = user_data['game']
+  game.initial_value = int(text)
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_aka(update, context):
   reply_keyboard = [['Aka-Ari', 'Aka-Nashi']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -494,17 +453,18 @@ def select_edit_aka(update, context):
   return SET_AKA
 
 
-@catch_error
+@ catch_error
 def set_aka(update, context):
   text = update.message.text
   user_data = context.user_data
 
-  user_data['aka'] = text
+  game = user_data['game']
+  game.aka = text
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_uma(update, context):
   reply_keyboard = [['15/5', '20/10'], ['Set custom uma']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -517,24 +477,28 @@ def select_edit_uma(update, context):
   return SET_UMA
 
 
-@catch_error
+@ catch_error
 def set_default_uma(update, context):
   user_data = context.user_data
   text = update.message.text
 
+  game = user_data['game']
+
   if text == "15/5":
-    user_data['uma'] = [15, 5, -5, -15]
+    game.uma = [15, 5, -5, -15]
 
   if text == "20/10":
-    user_data['uma'] = [20, 10, -10, -20]
+    game.uma = [20, 10, -10, -20]
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_custom_uma(update, context):
   user_data = context.user_data
-  user_data['uma'] = []
+
+  game = user_data['game']
+  game.uma = []
 
   update.message.reply_text(
       '`Please enter uma for position 1`',
@@ -543,22 +507,23 @@ def select_custom_uma(update, context):
   return SET_CUSTOM_UMA
 
 
-@catch_error
+@ catch_error
 def set_custom_uma(update, context):
   user_data = context.user_data
   text = update.message.text
 
-  user_data['uma'].append(int(text))
+  game = user_data['game']
+  game.add_custom_uma(text)
 
-  if len(user_data['uma']) < 4:
-    update.message.reply_text("`Please enter uma for position {}`".format(len(user_data['uma']) + 1),
+  if len(game.uma) < 4:
+    update.message.reply_text("`Please enter uma for position {}`".format(len(game.uma) + 1),
                               parse_mode=ParseMode.MARKDOWN_V2)
     return SET_CUSTOM_UMA
 
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_oka(update, context):
   update.message.reply_text(
       '`Please enter oka amount`',
@@ -567,7 +532,18 @@ def select_edit_oka(update, context):
   return SET_OKA
 
 
-@catch_error
+@ catch_error
+def set_oka(update, context):
+  user_data = context.user_data
+  text = update.message.text
+
+  game = user_data['game']
+  game.oka = int(text)
+
+  return return_select_edit_settings(update, game)
+
+
+@ catch_error
 def select_edit_chombo_value(update, context):
   update.message.reply_text(
       '`Please enter amount of points to deduct when someone chombo\nNote that the value will not be split among other players.`',
@@ -576,7 +552,18 @@ def select_edit_chombo_value(update, context):
   return SET_CHOMBO_VALUE
 
 
-@catch_error
+@ catch_error
+def set_chombo_value(update, context):
+  user_data = context.user_data
+  text = update.message.text
+
+  game = user_data['game']
+  game.chombo_value = int(text)
+
+  return return_select_edit_settings(update, game)
+
+
+@ catch_error
 def select_edit_chombo_payment_option(update, context):
   reply_keyboard = [['Payment to all', 'Flat deduction']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -591,50 +578,35 @@ def select_edit_chombo_payment_option(update, context):
   return SET_CHOMBO_PAYMENT_OPTION
 
 
-@catch_error
+@ catch_error
 def set_chombo_payment_option(update, context):
   user_data = context.user_data
   text = update.message.text
 
-  user_data['chombo option'] = text
+  game = user_data['game']
+  game.chombo_option = text
 
-  return return_select_edit_settings(update, user_data)
-
-
-@catch_error
-def set_chombo_value(update, context):
-  user_data = context.user_data
-  text = update.message.text
-
-  user_data['chombo value'] = int(text)
-
-  return return_select_edit_settings(update, user_data)
+  return return_select_edit_settings(update, game)
 
 
-@catch_error
+@ catch_error
 def select_edit_done(update, context):
   user_data = context.user_data
+  game = user_data['game']
   reply_keyboard = [['Start game', 'Discard game']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      func.print_game_settings_without_id(user_data)
-      + '`\n\nIs the game settings ok?`',
+      '`{}\n\nIs the game settings ok?`'.format(game.print_game_settings()),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
   return CONFIRM_GAME_SETTINGS
 
 
-@catch_error
-def set_oka(update, context):
-  user_data = context.user_data
-  text = update.message.text
-
-  user_data['oka'] = int(text)
-
-  return return_select_edit_settings(update, user_data)
-
+#############################################################################################
+# GAme start
+#############################################################################################
 
 def return_next_command(update, text):
   reply_keyboard = [['New Hand', 'End Game'],
@@ -649,83 +621,17 @@ def return_next_command(update, text):
   return SELECT_NEXT_COMMAND
 
 
-@catch_error
+@ catch_error
 def start_game(update, context):
   user_data = context.user_data
+  game = user_data['game']
 
-  player_names = func.get_all_player_name(user_data['players'])
-  user_data['started'] = True
+  game.start_game()
 
-  if user_data['result only']:
-    user_data['final score'] = []
-    update.message.reply_text(
-        "`Please enter first player's final score in terms of 100.`",
-        parse_mode=ParseMode.MARKDOWN_V2)
-
-    return SET_PLAYER_SCORE
-
-  if user_data['recorded'] and DB_CONFIG['in_use']:
-    gid, start_date = db.set_new_game(user_data)
-    user_data['id'] = gid
-    user_data['date'] = start_date
-  else:
-    user_data['id'] = 0
-    start_date = datetime.now()
-    user_data['date'] = start_date.strftime("%d-%m-%Y")
-    user_data['time'] = start_date.strftime('%H:%M:%S.%f')[:-4]
-    user_data['datetime'] = start_date
-
-  user_data['hands'] = []
-  user_data['penalty'] = [0, 0, 0, 0]
-
-  return return_next_command(update, func.print_game_settings_info(user_data) + '\n' + func.print_current_game_state(user_data['hands'], player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+  return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
 
 
-@catch_error
-def set_player_score(update, context):
-  user_data = context.user_data
-  text = int(update.message.text)
-  player_names = func.get_all_player_name(user_data['players'])
-
-  score = user_data['final score']
-  score.append(text)
-
-  if len(score) < 4:
-    update.message.reply_text(
-        "`Please enter next player's final score in terms of 100.`",
-        parse_mode=ParseMode.MARKDOWN_V2)
-
-    return SET_PLAYER_SCORE
-
-  text = "`Score:\n`"
-  text += func.print_name_score(player_names, score)
-
-  update.message.reply_text(
-      "`Please enter value of riichi stick confiscated in terms of 100.`",
-      parse_mode=ParseMode.MARKDOWN_V2)
-
-  return SET_LEFTOVER_POOL
-
-
-@catch_error
-def set_leftover_pool(update, context):
-  user_data = context.user_data
-  text = int(update.message.text)
-
-  user_data['final pool'] = text
-
-  reply_keyboard = [['Yes', 'No']]
-  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
-  update.message.reply_text(
-      '`Are there any penalties?`',
-      parse_mode=ParseMode.MARKDOWN_V2,
-      reply_markup=markup)
-
-  return SELECT_HAVE_PENALTY
-
-
-@catch_error
+@ catch_error
 def discard_game_settings(update, context):
   user_data = context.user_data
   update.message.reply_text("`Game has been discarded.`",
@@ -735,16 +641,14 @@ def discard_game_settings(update, context):
   return ConversationHandler.END
 
 
-@catch_error
+@ catch_error
 def add_new_hand(update, context):
   user_data = context.user_data
-  player_names = func.get_all_player_name(user_data['players'])
-  user_data['new hand'] = func.create_new_hand(
-      user_data['hands'], user_data['initial value'])
-  user_data['multiple ron winner list'] = []
-  user_data['multiple ron loser'] = None
+  game = user_data['game']
 
-  return return_4_player_done_option(update, player_names, SET_RIICHI, '`Who riichi?`')
+  game.create_new_hand()
+
+  return return_4_player_done_option(update, game.players.get_name_list(), SET_RIICHI, '`Who riichi?`')
 
 
 def return_4_player_option(update, player_names, return_state, text):
@@ -778,25 +682,22 @@ def return_4_player_done_option(update, player_names, return_state, text):
   return return_state
 
 
-@catch_error
+@ catch_error
 def set_hand_outcome(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-
-  user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  new_hand['outcome'] = text
+  hand.outcome = text
 
   if text == 'Mid Game Draw':
     reply_keyboard = [['Save', 'Discard']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
     update.message.reply_text(
-        func.print_hand_settings(new_hand, player_names)
-        + '`\nIs this setting ok?`',
+        '`{}\nIs this setting ok?`'.format(hand.print_settings()),
         parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=markup
     )
@@ -830,57 +731,46 @@ def return_set_han(update):
   return SET_HAN
 
 
-@catch_error
+@ catch_error
 def set_winner(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  if not func.is_valid_player_name(text, player_names):
-    return return_4_player_option(update, player_names, SET_WINNER, '`Invalid player name entered\nPlease enter a valid player name`')
+  success, error = hand.set_winner(text)
 
-  winner_idx = func.get_player_idx(text, player_names)
+  if not success:
+    if error == 'invalid':
+      return return_4_player_option(update, player_names, SET_WINNER, '`Invalid player selected\nPlease select a valid player name`')
+    if error == 'duplicate':
+      return return_4_player_option(update, player_names, SET_WINNER, '`This player have already been selected. Please select another player.`')
 
-  if winner_idx in user_data['multiple ron winner list']:
-    return return_4_player_option(update, player_names, SET_WINNER, '`This player have already been selected. Please select another player.`')
-
-  if winner_idx == user_data['multiple ron loser']:
-    return return_4_player_option(update, player_names, SET_WINNER, '`Invalid player name entered\nPlease enter a valid player name`')
-
-  new_hand['winner idx'] = winner_idx
-  user_data['multiple ron winner list'].append(winner_idx)
-
-  if not user_data['multiple ron loser'] is None:
-    new_hand['loser idx'] = user_data['multiple ron loser']
+  if not hand.loser is None:
     return return_set_han(update)
 
-  if new_hand['outcome'] == "Tsumo":
+  if hand.outcome == "Tsumo":
     return return_set_han(update)
 
-  if new_hand['outcome'] == 'Nagashi Mangan':
+  if hand.outcome == 'Nagashi Mangan':
     return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI, '`Who is in Tenpai?`')
 
   return return_4_player_option(update, player_names, SET_LOSER, '`Who dealt in?`')
 
 
-@catch_error
+@ catch_error
 def set_loser(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  if not func.is_valid_player_name(text, player_names):
-    return return_4_player_option(update, player_names, SET_LOSER, '`Invalid player name entered\nPlease enter a valid player name`')
+  success, _ = hand.set_loser(text)
 
-  loser_idx = func.get_player_idx(text, player_names)
-
-  if loser_idx == new_hand['winner idx']:
-    return return_4_player_option(update, player_names, SET_LOSER, '`Invalid Player Selected\nWho Lost?`')
-
-  new_hand['loser idx'] = loser_idx
-  user_data['multiple ron loser'] = loser_idx
+  if not success:
+    return return_4_player_option(update, player_names, SET_LOSER, '`Invalid player selected\nPlease select a valid player name`')
 
   return return_set_han(update)
 
@@ -897,106 +787,115 @@ def return_set_fu(update, fu_list, text):
   return SET_FU
 
 
-@catch_error
+@ catch_error
 def set_han(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
   text = update.message.text
-  player_names = func.get_all_player_name(user_data['players'])
+  game = user_data['game']
+  hand = game.current_hand
 
-  new_hand['han'] = text
+  hand.set_han(text)
 
   if re.match('^[1-4]$', text):
-    fu_list = func.get_valid_fu(new_hand['outcome'], new_hand['han'])
+    fu_list = hand.get_valid_fu()
     return return_set_fu(update, fu_list, '`How many Fu?`')
 
-  return return_save_discard_hand_option(update, new_hand, player_names)
+  if hand.outcome == 'Ron' and game.multiple_ron and len(hand.winners) < 3:
+    reply_keyboard = [['Yes', 'No']]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+        '`Did anyone else Ron?`',
+        parse_mode=ParseMode.MARKDOWN_V2,
+        reply_markup=markup)
+
+    return MULTIPLE_RON
+
+  return return_save_discard_hand_option(update, hand)
 
 
-@catch_error
+@ catch_error
 def set_fu(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
   text = update.message.text
-  player_names = func.get_all_player_name(user_data['players'])
+  game = user_data['game']
+  hand = game.current_hand
 
-  fu_list = func.get_valid_fu(new_hand['outcome'], new_hand['han'])
-  if not text in fu_list:
+  success, _ = hand.set_fu(text)
+  fu_list = hand.get_valid_fu()
+
+  if not success:
     return return_set_fu(update, fu_list, '`Invalid Fu Selected\nPlease choose a valid Fu`')
 
-  new_hand['fu'] = text
-  return return_save_discard_hand_option(update, new_hand, player_names)
+  if hand.outcome == 'Ron' and game.multiple_ron and len(hand.winners) < 3:
+    reply_keyboard = [['Yes', 'No']]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(
+        '`Did anyone else Ron?`',
+        parse_mode=ParseMode.MARKDOWN_V2,
+        reply_markup=markup)
+
+    return MULTIPLE_RON
+
+  return return_save_discard_hand_option(update, hand)
 
 
-@catch_error
+@ catch_error
 def set_draw_tenpai(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
-  tenpai = new_hand['tenpai']
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  if not func.is_valid_player_name(text, player_names):
+  success, _ = hand.toggle_tenpai(text)
+
+  if not success:
     return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI, '`Invalid player name entered\nPlease enter a valid player name`')
 
-  player_idx = func.get_player_idx(text, player_names)
-
-  tenpai[player_idx] = not tenpai[player_idx]
-
   return return_4_player_done_option(update, player_names, SET_DRAW_TENPAI,
-                                     '`Players who are in tenpai:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
-                                     +
-                                     func.print_select_names(
-                                         player_names, tenpai)
-                                     + '`\nWho is in Tenpai?`')
+                                     '`Players who are in tenpai:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho is in Tenpai?`'.format(print_select_names(player_names, hand.tenpai)))
 
 
-@catch_error
+@ catch_error
 def set_draw_tenpai_done(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
+  hand = user_data['game'].current_hand
 
-  return return_save_discard_hand_option(update, new_hand, player_names)
+  return return_save_discard_hand_option(update, hand)
 
 
-@catch_error
+@ catch_error
 def set_riichi(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
-  riichi = new_hand['riichi']
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  if not func.is_valid_player_name(text, player_names):
+  success, _ = hand.toggle_riichi(text)
+
+  if not success:
     return return_4_player_done_option(update, player_names, SET_RIICHI, '`Invalid player name entered\nPlease enter a valid player name`')
 
-  player_idx = func.get_player_idx(text, player_names)
-
-  riichi[player_idx] = not riichi[player_idx]
-
   return return_4_player_done_option(update, player_names, SET_RIICHI,
-                                     '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
-                                     +
-                                     func.print_select_names(
-                                         player_names, riichi)
-                                     + '`\nWho riichi?`')
+                                     '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho riichi?`'.format(print_select_names(player_names, hand.riichi)))
 
 
-def return_save_discard_hand_option(update, new_hand, player_names):
+def return_save_discard_hand_option(update, hand):
   reply_keyboard = [['Save', 'Discard']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      func.print_hand_settings(new_hand, player_names)
-      + '`\nIs this setting ok?`',
+      '`{}\nIs this setting ok?`'.format(hand.print_settings()),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
   return PROCESS_HAND
 
 
-@catch_error
+@ catch_error
 def set_riichi_done(update, context):
   reply_keyboard = [['Tsumo', 'Ron'], [
       'Draw', 'Mid Game Draw'], ['Nagashi Mangan', 'Chombo']]
@@ -1009,124 +908,76 @@ def set_riichi_done(update, context):
   return SET_HAND_OUTCOME
 
 
-@catch_error
+@ catch_error
 def set_chombo(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
-  chombo = new_hand['chombo']
   text = update.message.text
+  game = user_data['game']
+  hand = game.current_hand
+  player_names = game.players.get_name_list()
 
-  if not func.is_valid_player_name(text, player_names):
+  success, _ = hand.toggle_chombo(text)
+
+  if not success:
     return return_4_player_done_option(update, player_names, SET_CHOMBO, '`Invalid player name entered\nPlease enter a valid player name`')
 
-  player_idx = func.get_player_idx(text, player_names)
-
-  chombo[player_idx] = not chombo[player_idx]
-
   return return_4_player_done_option(update, player_names, SET_CHOMBO,
-                                     '`Players who Chombo:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n`'
-                                     +
-                                     func.print_select_names(
-                                         player_names, chombo)
-                                     + '`\nWho Chombo?`')
+                                     '`Players who Chombo:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho Chombo?`'.format(print_select_names(player_names, hand.chombo)))
 
 
-@catch_error
+@ catch_error
 def set_chombo_done(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
+  game = user_data['game']
+  hand = game.current_hand
 
   reply_keyboard = [['Save', 'Discard']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      func.print_hand_settings(new_hand, player_names)
-      + '`\nIs this setting ok?`',
+      '`{}\nIs this setting ok?`'.format(hand.print_settings()),
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
   return PROCESS_HAND
 
 
-@catch_error
+@ catch_error
 def discard_hand(update, context):
   user_data = context.user_data
-  hands = user_data['hands']
-  player_names = func.get_all_player_name(user_data['players'])
-  hand_num = user_data['new hand']['hand num']
+  game = user_data['game']
 
-  while len(hands) > 0 and hands[-1]['hand num'] == hand_num:
-    hands.pop()
+  game.current_hand = None
 
-  del user_data['new hand']
-
-  return return_next_command(update, '`Hand have been discarded\n`' + func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+  return return_next_command(update, '`Hand have been discarded\n{}\n\nPlease select an option:`'.format(game.print_current_game_state()))
 
 
-@catch_error
+@ catch_error
 def save_hand(update, context):
   user_data = context.user_data
-  new_hand = user_data['new hand']
-  player_names = func.get_all_player_name(user_data['players'])
+  game = user_data['game']
 
-  if new_hand['outcome'] == 'Chombo':
-    func.process_chombo_hand(
-        new_hand, user_data['chombo value'], user_data['chombo option'])
-  else:
-    func.process_hand(new_hand, user_data['kiriage'])
+  game.save_hand()
 
-  if user_data['recorded'] and DB_CONFIG['in_use']:
-    db.set_new_hand(
-        new_hand, user_data['id'], func.get_all_player_id(user_data['players']))
-
-  new_hand['winner idx list'] = user_data['multiple ron winner list']
-  user_data['hands'].append(new_hand)
-  del user_data['new hand']
-
-  if SPREADSHEET_CONFIG['in_use'] and new_hand['outcome'] == 'Ron' and not user_data['atamahane'] and len(user_data['multiple ron winner list']) < 3:
-    reply_keyboard = [['Yes', 'No']]
-    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
-    update.message.reply_text(
-        '`Did anyone else Ron?`',
-        parse_mode=ParseMode.MARKDOWN_V2,
-        reply_markup=markup)
-
-    return MULTIPLE_RON
-
-  return return_next_command(update,
-                             func.print_hand_title(new_hand)
-                             +
-                             func.print_score_change(
-                                 user_data['hands'], player_names)
-                             + '`\n\nPlease select an option:`')
+  return return_next_command(update, '`{}\n\nPlease select an option:`'.format(game.print_current_game_state()))
 
 
-@catch_error
+@ catch_error
 def confirm_multiple_ron(update, context):
   user_data = context.user_data
-  player_names = func.get_all_player_name(user_data['players'])
-  user_data['new hand'] = func.create_multiple_ron_hand(user_data['hands'])
+  player_names = user_data['game'].players.get_name_list()
 
   return return_4_player_option(update, player_names, SET_WINNER, '`Who Won?`')
 
 
-@catch_error
+@ catch_error
 def no_multiple_ron(update, context):
   user_data = context.user_data
-  player_names = func.get_all_player_name(user_data['players'])
-  new_hand = user_data['hands'][-1]
-  return return_next_command(update,
-                             func.print_hand_title(new_hand)
-                             +
-                             func.print_score_change(
-                                 user_data['hands'], player_names)
-                             + '`\n\nPlease select an option:`')
+  hand = user_data['game'].current_hand
+  return return_save_discard_hand_option(update, hand)
 
 
-@catch_error
+@ catch_error
 def end_game(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -1139,7 +990,7 @@ def end_game(update, context):
   return CONFIRM_GAME_END
 
 
-@catch_error
+@ catch_error
 def confirm_game_end(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -1152,66 +1003,47 @@ def confirm_game_end(update, context):
   return SELECT_HAVE_PENALTY
 
 
-def return_to_next_command(update, context):
-  user_data = context.user_data
-  hands = user_data['hands']
-  player_names = func.get_all_player_name(user_data['players'])
-
-  return return_next_command(update,
-                             func.print_current_game_state(
-                                 hands, player_names, user_data['initial value'])
-                             + '`\n\nPlease select an option:`')
-
-
-@catch_error
+@ catch_error
 def select_have_penalty(update, context):
   user_data = context.user_data
-  player_names = func.get_all_player_name(user_data['players'])
-  penalty = user_data['penalty']
+  game = user_data['game']
+  player_names = game.players.get_name_list()
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, func.print_penalty(penalty, player_names) + '`Who has a penalty?`')
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
 
 
-@catch_error
+@ catch_error
 def set_penalty_player(update, context):
   user_data = context.user_data
   text = update.message.text
-  penalty = user_data['penalty']
-  player_names = func.get_all_player_name(user_data['players'])
 
-  if not func.is_valid_player_name(text, player_names):
-    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Invalid player name entered\nPlease enter a valid player name`')
+  user_data['chosen'] = text
 
-  player_idx = func.get_player_idx(text, player_names)
-
-  user_data['chosen'] = player_idx
-
-  update.message.reply_text(
-      func.print_penalty(penalty, player_names)
-      + '`Please enter the penalty amount for {} (without the negative sign)`'.format(
-        player_names[player_idx]),
-      parse_mode=ParseMode.MARKDOWN_V2)
+  update.message.reply_text('`Please enter the penalty amount for {} (without the negative sign)`'.format(text),
+                            parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PENALTY_VALUE
 
 
-@catch_error
+@ catch_error
 def set_penalty_value(update, context):
   user_data = context.user_data
-  player_names = func.get_all_player_name(user_data['players'])
-  penalty = user_data['penalty']
   text = update.message.text
-  value = int(text)
+  game = user_data['game']
+  player_names = game.players.get_name_list()
 
-  penalty[user_data['chosen']] = value
+  value = int(text)
+  success, _ = game.set_penalty(user_data['chosen'], value)
   del user_data['chosen']
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, func.print_penalty(penalty, player_names) + '`Who has a penalty?`')
+  if not success:
+    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
+
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
 
 
-@catch_error
+@ catch_error
 def confirm_penalty_done(update, context):
-  user_data = context.user_data
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -1220,98 +1052,33 @@ def confirm_penalty_done(update, context):
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
-  if user_data['result only']:
-    return CONFIRM_RESULT_ONLY
-
   return COMPLETE_GAME
 
 
-@catch_error
+@ catch_error
+def return_to_next_command(update, context):
+  user_data = context.user_data
+  game = user_data['game']
+
+  return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
+
+
+@ catch_error
 def save_complete_game(update, context):
   user_data = context.user_data
-  players = user_data['players']
-  player_names = func.get_all_player_name(user_data['players'])
+  game = user_data['game']
 
-  if user_data['result only']:
-    return confirm_result_only_game(update, context)
-
-  func.process_game(user_data)
-
-  if user_data['recorded']:
-    if DB_CONFIG['in_use']:
-      db.set_complete_game(
-          user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'])
-      final_score_text = func.print_end_game_result(
-          player_names, user_data['final score'], user_data['position'], user_data['initial value'])
-      update.message.reply_text(
-          "`Game has been completed.\n\n`" + final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
-      for player in players:
-        if player['telegram_id']:
-          push_msg.send_msg(func.print_game_confirmation(
-              user_data['id'], final_score_text), player['telegram_id'])
-    elif SPREADSHEET_CONFIG['in_use']:
-      update.message.reply_text(
-          "`The game result is being submitted`", parse_mode=ParseMode.MARKDOWN_V2)
-      user_data['duration'] = (
-          datetime.now() - user_data['datetime']).total_seconds()
-      googlesheet.set_game_thread(update, user_data)
-
-  user_data.clear()
-  return ConversationHandler.END
-
-
-@catch_error
-def confirm_result_only_game(update, context):
-  user_data = context.user_data
-
-  reply_keyboard = [['Yes', 'No']]
-  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
+  game.end_game()
   update.message.reply_text(
-      func.print_result_only_game_settings(user_data)
-      + '`\n\nAre the game settings correct?`',
-      parse_mode=ParseMode.MARKDOWN_V2,
-      reply_markup=markup)
+      '`Game have been completed.\n\n{}`'.format(print_end_game_result(
+          game.players.get_name_list(), game.final_score, game.position, game.initial_value)),
+      parse_mode=ParseMode.MARKDOWN_V2)
+  if game.recorded:
+    update.message.reply_text(
+        '`The game result is being submitted`',
+        parse_mode=ParseMode.MARKDOWN_V2)
+    game.submit_game()
 
-  return SAVE_RESULT_ONLY
-
-
-@catch_error
-def save_result_only_game(update, context):
-  user_data = context.user_data
-  players = user_data['players']
-  player_names = func.get_all_player_name(user_data['players'])
-
-  func.process_result_only(user_data)
-
-  if user_data['recorded']:
-    if DB_CONFIG['in_use']:
-      gid = db.set_result_only_game(user_data)
-    elif SPREADSHEET_CONFIG['in_use']:
-      update.message.reply_text(
-          "`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
-      gid = googlesheet.set_record_game(user_data)
-
-  update.message.reply_text("`Game has been saved.`",
-                            parse_mode=ParseMode.MARKDOWN_V2)
-
-  final_score_text = func.print_end_game_result(
-      player_names, user_data['final score'], user_data['position'], user_data['initial value'])
-
-  for player in players:
-    if not player['telegram_id'] is None:
-      push_msg.send_msg(func.print_game_confirmation(
-          gid, final_score_text), player['telegram_id'])
-
-  user_data.clear()
-  return ConversationHandler.END
-
-
-@catch_error
-def discard_result_only_game(update, context):
-  user_data = context.user_data
-  update.message.reply_text(
-      "`Game settings have been discarded`", parse_mode=ParseMode.MARKDOWN_V2)
   user_data.clear()
   return ConversationHandler.END
 
@@ -1328,24 +1095,17 @@ def confirm_delete_last_hand(update, context):
   return DELETE_LAST_HAND
 
 
-@catch_error
+@ catch_error
 def delete_last_hand(update, context):
   user_data = context.user_data
-  hands = user_data['hands']
-  player_names = func.get_all_player_name(user_data['players'])
-  text = update.message.text
+  game = user_data['game']
 
-  if len(hands) > 0 and text == 'Yes':
-    last_hand_num = hands[-1]['hand num']
-    if DB_CONFIG['in_use']:
-      db.delete_last_hand(user_data['id'], last_hand_num)
-    while len(hands) > 0 and hands[-1]['hand num'] == last_hand_num:
-      hands.pop()
+  game.delete_last_hand()
 
-  return return_next_command(update, func.print_current_game_state(hands, player_names, user_data['initial value']) + '`\n\nPlease select an option:`')
+  return return_next_command(update, '`{}\n\nPlease select an option:`'.format(game.print_current_game_state()))
 
 
-@catch_error
+@ catch_error
 def confirm_cancel_game(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -1358,12 +1118,9 @@ def confirm_cancel_game(update, context):
   return CANCEL_GAME
 
 
-@catch_error
+@ catch_error
 def quit(update, context):
   user_data = context.user_data
-
-  if 'id' in user_data and user_data['id'] and DB_CONFIG['in_use']:
-    db.quit_game(user_data['id'])
 
   update.message.reply_text(
       "`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)
@@ -1371,38 +1128,14 @@ def quit(update, context):
   return ConversationHandler.END
 
 
-@catch_error
+@ catch_error
 def timeout(update, context):
   user_data = context.user_data
+  game = user_data['game']
 
-  if user_data['recorded'] and 'started' in user_data and user_data['started']:
-    func.process_game(user_data)
-    if DB_CONFIG['in_use'] and 'id' in user_data and user_data['id']:
-      players = user_data['players']
-      player_names = func.get_all_player_name(user_data['players'])
-
-      db.set_complete_game(
-          user_data['id'], user_data['final score'], user_data['position'], user_data['penalty'], True)
-      final_score_text = func.print_end_game_result(
-          player_names, user_data['final score'], user_data['position'], user_data['initial value'])
-
-      update.message.reply_text("`Game have timeout and is assumed to be completed\n\n`" +
-                                final_score_text, parse_mode=ParseMode.MARKDOWN_V2)
-
-      for player in players:
-        if not player['telegram_id'] is None:
-          push_msg.send_msg(func.print_game_confirmation(
-              user_data['id'], final_score_text), player['telegram_id'])
-    elif SPREADSHEET_CONFIG['in_use']:
-      update.message.reply_text(
-          "`Game is currently being recorded please wait a moment.`", parse_mode=ParseMode.MARKDOWN_V2)
-      user_data['duration'] = (
-          datetime.now() - user_data['datetime']).total_seconds()
-      googlesheet.set_game_thread(update, user_data, True)
-
-  else:
-    update.message.reply_text(
-        "`User has timeout due to inactivity`", parse_mode=ParseMode.MARKDOWN_V2)
+  game.end_game(True)
+  if game.recorded:
+    game.submit_game()
 
   user_data.clear()
   return ConversationHandler.END
