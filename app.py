@@ -180,37 +180,53 @@ def main():
               MessageHandler(Filters.regex('^(Yes|No)$'), handler.quit)
           ],
           SET_HAND_OUTCOME: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex(
                   '^(Tsumo|Ron|Draw|Mid Game Draw|Nagashi Mangan|Chombo)$'), handler.set_hand_outcome)
           ],
           SET_WINNER: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex(
                   '^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_winner)
           ],
           SET_LOSER: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex(
                   '^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex('^(Quit)$')), handler.set_loser)
           ],
           SET_DRAW_TENPAI: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(Filters.command | Filters.regex(
                   '^(Quit|Done|Mid Game Draw)$')), handler.set_draw_tenpai),
               MessageHandler(Filters.regex('^Done$'),
                              handler.set_draw_tenpai_done)
           ],
           SET_HAN: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex(
                   '^([1-9]|1[0-3])$'), handler.set_han)
           ],
           SET_FU: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex(
                   '^(25|[2-9]0|1[0-3]0)$'), handler.set_fu)
           ],
           SET_RIICHI: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(
                   Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_riichi),
               MessageHandler(Filters.regex('^Done$'), handler.set_riichi_done)
           ],
           SET_CHOMBO: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(
                   Filters.command | Filters.regex('^(Quit|Done)$')), handler.set_chombo),
               MessageHandler(Filters.regex('^Done$'), handler.set_chombo_done)
@@ -220,6 +236,8 @@ def main():
               MessageHandler(Filters.regex('^Discard$'), handler.discard_hand)
           ],
           MULTIPLE_RON: [
+              MessageHandler(Filters.regex('^Drop Current Hand$'),
+                             handler.drop_current_hand),
               MessageHandler(Filters.regex('^Yes$'),
                              handler.confirm_multiple_ron),
               MessageHandler(Filters.regex('^No$'), handler.no_multiple_ron)

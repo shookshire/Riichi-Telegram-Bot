@@ -44,13 +44,20 @@ def format_text_for_telegram(str):
 def helper(update, context):
 
   update.message.reply_text(
-      "For registration and other queries, please contact @MrFeng\n\n"
-      + "/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n\n"
-      + "/mcr: Start a new MCR score tracker. Game data are NOT recorded.\n\n"
-      # +"/record : Save final game score to SgRiichi server.\n\n"
-      + "/get_telegram_id: Returns your telegram id number.\n\n"
-      + "/get_sgriichi_id: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n\n"
-      + "/quit: Quit current game. Game data will not be recorded.")
+      "Akako records your every hand played during the game and give you interesting statistical insights! Only for registered Singaporean Riichi players.\n\n"
+      + "1. You can register at https://sgriichimahjong.com/join-sgriichi/\n"
+      + "2. You will be asked for your telegram id number. Type /get_telegram_id , copy and paste into the form.\n"
+      + "3. Upon filling up the 2 forms, wait for 0.5 working day or contact @MrFeng for the bot to update with your registered information.\n"
+      + "4. Once updated, type /get_my_info to retrieve your player id and registered player name. Please remember them.\n"
+      + "5. Type /riichi to start using it! Only 1 person of the table will record. If you are not recording, provide your player id or player name to the person recording.\n"
+      + "6. Your games recorded will be tabulated at https://sgriichimahjong.com/results/\n\n"
+      + "List of Akako functions:\n"
+      + "/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n"
+      + "/get_my_info: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n"
+      + "/help: Display this starting message\n"
+      + "/quit: Quit current game. Game data will not be recorded.\n"
+      + "/get_telegram_id: Returns your telegram id number.\n"
+      + "/mcr: Start a new MCR score tracker. Game data are NOT recorded. No registration required.")
 
   return ConversationHandler.END
 
@@ -86,8 +93,11 @@ def get_sgriichi_id(update, context):
   filtered = list(
       filter(lambda x: x['telegram_id'] == telegram_id, player_list))
   if len(filtered):
-    update.message.reply_text('SgRiichi id:')
-    update.message.reply_text('{}'.format(filtered[0]['pid']))
+    update.message.reply_text(
+        'Your player id is "{}"\n'.format(filtered[0]['pid'])
+        + 'Your player name is "{}"\n'.format(filtered[0]['name'])
+        + 'You will need to remember either one of this during inputing player name when using Akako.'
+    )
   else:
     update.message.reply_text(
         'Your telegram id has not been registered. If you have already signed up with SgRiichi, please contact @MrFeng or other SgRiichi admins.')
@@ -654,7 +664,8 @@ def add_new_hand(update, context):
 def return_4_player_option(update, player_names, return_state, text):
   reply_keyboard = [
       ['{}'.format(player_names[0]), '{}'.format(player_names[1])],
-      ['{}'.format(player_names[2]), '{}'.format(player_names[3])]
+      ['{}'.format(player_names[2]), '{}'.format(player_names[3])],
+      ['Drop Current Hand']
   ]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -666,12 +677,15 @@ def return_4_player_option(update, player_names, return_state, text):
   return return_state
 
 
-def return_4_player_done_option(update, player_names, return_state, text):
+def return_4_player_done_option(update, player_names, return_state, text, drop_current_hand_option=True):
   reply_keyboard = [
       ['{}'.format(player_names[0]), '{}'.format(player_names[1])],
-      ['{}'.format(player_names[2]), '{}'.format(player_names[3])],
-      ['Done']
+      ['{}'.format(player_names[2]), '{}'.format(player_names[3])]
   ]
+  if drop_current_hand_option:
+    reply_keyboard.append(['Done', 'Drop Current Hand'])
+  else:
+    reply_keyboard.append(['Done'])
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -720,6 +734,7 @@ def return_set_han(update):
       ['7', '8', '9'],
       ['10', '11', '12', '13']
   ]
+  reply_keyboard.append(['Drop Current Hand'])
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -777,6 +792,7 @@ def set_loser(update, context):
 
 def return_set_fu(update, fu_list, text):
   reply_keyboard = [fu_list[i:i+3] for i in range(0, len(fu_list), 3)]
+  reply_keyboard.append(['Drop Current Hand'])
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -978,6 +994,16 @@ def no_multiple_ron(update, context):
 
 
 @ catch_error
+def drop_current_hand(update, context):
+  user_data = context.user_data
+  game = user_data['game']
+
+  game.drop_current_hand()
+
+  return return_next_command(update, '`{}\n\nPlease select an option:`'.format(game.print_current_game_state()))
+
+
+@ catch_error
 def end_game(update, context):
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -1009,7 +1035,7 @@ def select_have_penalty(update, context):
   game = user_data['game']
   player_names = game.players.get_name_list()
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
 
 
 @ catch_error
@@ -1037,9 +1063,9 @@ def set_penalty_value(update, context):
   del user_data['chosen']
 
   if not success:
-    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
+    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)))
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
 
 
 @ catch_error
@@ -1071,7 +1097,7 @@ def save_complete_game(update, context):
   game.end_game()
   update.message.reply_text(
       '`Game have been completed.\n\n{}`'.format(print_end_game_result(
-          game.players.get_name_list(), game.final_score, game.position, game.initial_value)),
+          game.players.get_name_list(), game.final_score, game.position, game.initial_value, game.uma)),
       parse_mode=ParseMode.MARKDOWN_V2)
   if game.recorded:
     update.message.reply_text(

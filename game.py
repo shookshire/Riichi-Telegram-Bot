@@ -54,6 +54,9 @@ class Game:
     if len(self.hands):
       self.hands.pop()
 
+  def drop_current_hand(self):
+    self.current_hand = None
+
   def save_hand(self):
     self.current_hand.process_hand()
     self.hands.append(self.current_hand)
@@ -113,7 +116,7 @@ class Game:
           "gid {} have been saved. Timeout={}".format(gid, self.timeout))
 
       final_score_text = print_end_game_result(self.players.get_name_list(
-      ), self.final_score, self.position, self.initial_value)
+      ), self.final_score, self.position, self.initial_value, self.uma)
       message = print_game_confirmation(gid, '`{}`'.format(final_score_text))
       self.players.notify_players(message)
     except Exception as e:

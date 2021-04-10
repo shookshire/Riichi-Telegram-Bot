@@ -46,20 +46,45 @@ def print_game_confirmation(gid, final_score_text):
   return text
 
 
-def print_end_game_result(player_names, score, position, initial_value):
+def have_3_same_position(position):
+  for i in position:
+    freq = position.count(i)
+    if freq == 3:
+      return True, i
+  return False, None
 
+
+def get_uma(uma, position, triple_same_position):
+  x = float(position)
+  round_down = int(x) - 1
+  if triple_same_position:
+    return (uma[round_down-1] + uma[round_down] + uma[round_down+1])/3
+  if x.is_integer():
+    return uma[round_down]
+  else:
+    return (uma[round_down] + uma[round_down + 1])/2
+
+
+def print_end_game_result(player_names, score, position, initial_value, uma):
   max_name_len = get_max_len(player_names)
+  have_3_same_pos, pos = have_3_same_position(position)
+
   res = []
   for i in range(4):
     res.append(
-        {'name': player_names[i], 'score': score[i], 'position': position[i]})
+        {'name': player_names[i], 'score': score[i], 'position': position[i], 'uma': get_uma(uma, position[i], have_3_same_pos if pos == position[i] else False)})
 
   res = sorted(res, key=lambda k: k['position'])
 
-  text = ''
+  text = 'Name'.ljust(max_name_len) + '| Raw | Pos\n'
   for obj in res:
-    text += '{}'.format(obj['name']).ljust(max_name_len) + '|{}'.format(obj['score']) + \
-        '|{}'.format(obj['position']) + \
-        '|{}\n'.format(obj['score'] - initial_value)
+    text += '{}'.format(obj['name']).ljust(max_name_len) + '| {} '.format(obj['score']) + \
+        '| {}\n'.format(obj['position'])
+
+  text += '\n' + 'Name'.ljust(max_name_len) + '| Net  | Points\n'
+  for obj in res:
+    text += '{}'.format(obj['name']).ljust(max_name_len) + \
+        '| {} '.format(obj['score'] - initial_value).ljust(7) + \
+        '| {}\n'.format(obj['score'] - initial_value + obj['uma'])
 
   return text
