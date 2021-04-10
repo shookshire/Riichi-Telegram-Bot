@@ -45,6 +45,7 @@ def helper(update, context):
 
   update.message.reply_text(
       "Akako records your every hand played during the game and give you interesting statistical insights! Only for registered Singaporean Riichi players.\n\n"
+      + "Just follow a few simple steps below!\n"
       + "1. You can register at https://sgriichimahjong.com/join-sgriichi/\n"
       + "2. You will be asked for your telegram id number. Type /get_telegram_id , copy and paste into the form.\n"
       + "3. Upon filling up the 2 forms, wait for 0.5 working day or contact @MrFeng for the bot to update with your registered information.\n"

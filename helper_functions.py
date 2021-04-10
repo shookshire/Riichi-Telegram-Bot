@@ -85,6 +85,6 @@ def print_end_game_result(player_names, score, position, initial_value, uma):
   for obj in res:
     text += '{}'.format(obj['name']).ljust(max_name_len) + \
         '| {} '.format(obj['score'] - initial_value).ljust(7) + \
-        '| {}\n'.format((obj['score'] - initial_value)/10 + obj['uma'])
+        '| {}\n'.format(obj['score'] - initial_value + obj['uma'] * 10)
 
   return text
