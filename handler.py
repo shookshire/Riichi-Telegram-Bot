@@ -97,7 +97,7 @@ def get_sgriichi_id(update, context):
     update.message.reply_text(
         'Your player id is "{}"\n'.format(filtered[0]['pid'])
         + 'Your player name is "{}"\n'.format(filtered[0]['name'])
-        + 'You will need to remember either one of this during inputing player name when using Akako.'
+        + 'Please remember either one of this during inputting player name when using Akako.'
     )
   else:
     update.message.reply_text(
