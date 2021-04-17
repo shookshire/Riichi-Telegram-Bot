@@ -173,11 +173,15 @@ def main():
                              handler.confirm_cancel_game)
           ],
           DELETE_LAST_HAND: [
-              MessageHandler(Filters.regex('^(Yes|No)$'),
-                             handler.delete_last_hand)
+              MessageHandler(Filters.regex('^Yes$'),
+                             handler.delete_last_hand),
+              MessageHandler(Filters.regex('^No$'),
+                             handler.return_to_next_command)
           ],
           CANCEL_GAME: [
-              MessageHandler(Filters.regex('^(Yes|No)$'), handler.quit)
+              MessageHandler(Filters.regex('^Yes$'), handler.quit),
+              MessageHandler(Filters.regex('^No$'),
+                             handler.return_to_next_command)
           ],
           SET_HAND_OUTCOME: [
               MessageHandler(Filters.regex('^Drop Current Hand$'),

@@ -1036,7 +1036,7 @@ def select_have_penalty(update, context):
   game = user_data['game']
   player_names = game.players.get_name_list()
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
 
 
 @ catch_error
@@ -1064,9 +1064,9 @@ def set_penalty_value(update, context):
   del user_data['chosen']
 
   if not success:
-    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
+    return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), false)
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
 
 
 @ catch_error
