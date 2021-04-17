@@ -8,7 +8,7 @@ from telegram import ReplyKeyboardMarkup, ParseMode
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
-from constants import SEAT_NAME, MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_CONFIRM_GAME_END, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE
+from constants import SEAT_NAME, MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_CONFIRM_GAME_END, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_DELETE_LAST_HAND
 
 
 @catch_error
@@ -97,15 +97,30 @@ def confirm_player_name(update, context):
 
 
 @catch_error
+def confirm_delete_last_hand(update, context):
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+      "`Delete last hand?`",
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+  return MCR_DELETE_LAST_HAND
+
+
+@catch_error
 def delete_last_hand(update, context):
   user_data = context.user_data
+  text = update.message.text
 
-  hands = user_data['hands']
-  hands.pop()
-  if len(hands) > 0:
+  if text == "Yes":
+    hands = user_data['hands']
     hands.pop()
+    if len(hands) > 0:
+      hands.pop()
 
-  mcr_func.generate_new_hand(hands, user_data['players'])
+    mcr_func.generate_new_hand(hands, user_data['players'])
   return return_next_command(update, mcr_func.print_current_game_state(user_data['hands']))
 
 

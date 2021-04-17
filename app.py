@@ -44,7 +44,7 @@ from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HA
 from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
 
 # Mcr state
-from constants import MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_CONFIRM_GAME_END
+from constants import MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_CONFIRM_GAME_END, MCR_DELETE_LAST_HAND
 
 
 def main():
@@ -302,9 +302,13 @@ def main():
               MessageHandler(Filters.regex(
                   '^(Self Draw|Win Off Discard)$'), mcr_handler.set_win_hand),
               MessageHandler(Filters.regex('^(Delete Last Hand)$'),
-                             mcr_handler.delete_last_hand),
+                             mcr_handler.confirm_delete_last_hand),
               MessageHandler(Filters.regex('^(End Game)$'),
                              mcr_handler.confirm_end_game)
+          ],
+          MCR_DELETE_LAST_HAND: [
+              MessageHandler(Filters.regex('^(Yes|No)$') & ~(Filters.command | Filters.regex('^Quit$')),
+                             mcr_handler.delete_last_hand)
           ],
           MCR_SET_WINNING_PLAYER: [
               MessageHandler(Filters.regex('^[a-zA-Z ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
