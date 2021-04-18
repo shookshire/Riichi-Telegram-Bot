@@ -26,6 +26,13 @@ def print_select_names(player_names, selected):
   return text
 
 
+def print_select_names_in_order(player_names, order):
+  text = ''
+  for idx in order:
+    text += '{}\n'.format(player_names[idx])
+  return text
+
+
 def print_name_score(player_names, score):
   max_name_len = get_max_len(player_names)
 

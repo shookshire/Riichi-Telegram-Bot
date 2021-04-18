@@ -1,5 +1,5 @@
 import re
-from helper_functions import print_name_score, print_select_names, get_max_len
+from helper_functions import print_name_score, print_select_names, get_max_len, print_select_names_in_order
 from constants import TSUMO_VALUE, RON_VALUE, TSUMO_OYA_VALUE, TSUMO_OYA_KIRIAGE_VALUE, TSUMO_KIRIAGE_VALUE, RON_OYA_VALUE, RON_OYA_KIRIAGE_VALUE, RON_KIRIAGE_VALUE
 
 
@@ -13,6 +13,7 @@ class Hand:
     self.loser = None
     self.tenpai = [False, False, False, False]
     self.riichi = [False, False, False, False]
+    self.riichi_order = []
     self.final_score = None
     self.position = None
     self.chombo = [False, False, False, False]
@@ -75,6 +76,9 @@ class Hand:
     if idx is None:
       return False, 'invalid'
     self.riichi[idx] = not self.riichi[idx]
+    if idx in self.riichi_order:
+      self.riichi_order.remove(idx)
+    self.riichi_order.append(idx)
     return True, None
 
   def toggle_tenpai(self, name):
@@ -382,7 +386,8 @@ class Hand:
             current_score[j],
             changed_score[j],
             score_change[j],
-            int(self.chombo[j])
+            int(self.chombo[j]),
+            self.riichi_order.index(j) if j in self.riichi_order else None
         ])
 
       current_score = changed_score
@@ -451,5 +456,5 @@ class Hand:
         )
 
     text += 'Who Riichi:\n{}'.format(
-        print_select_names(player_names, self.riichi))
+        print_select_names_in_order(player_names, self.riichi_order))
     return text

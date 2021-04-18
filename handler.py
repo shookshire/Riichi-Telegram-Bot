@@ -6,7 +6,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
 import push_msg
-from helper_functions import print_end_game_result, print_game_confirmation, print_select_names
+from helper_functions import print_end_game_result, print_game_confirmation, print_select_names, print_select_names_in_order
 from googlesheet import Googlesheets
 from log_helper import catch_error, logger
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
@@ -897,7 +897,7 @@ def set_riichi(update, context):
     return return_4_player_done_option(update, player_names, SET_RIICHI, '`Invalid player name entered\nPlease enter a valid player name`')
 
   return return_4_player_done_option(update, player_names, SET_RIICHI,
-                                     '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho riichi?`'.format(print_select_names(player_names, hand.riichi)))
+                                     '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho riichi?`'.format(print_select_names_in_order(player_names, hand.riichi_order)))
 
 
 def return_save_discard_hand_option(update, hand):
