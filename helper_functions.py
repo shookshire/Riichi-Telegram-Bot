@@ -83,8 +83,12 @@ def print_end_game_result(player_names, score, position, initial_value, uma):
 
   text += '\n' + 'Name'.ljust(max_name_len) + '| Net  | Points\n'
   for obj in res:
+    net_score = obj['score'] - initial_value
+    score_with_uma = net_score + obj['uma'] * 10
+    if isinstance(score_with_uma, float) and score_with_uma.is_integer():
+      score_with_uma = int(score_with_uma)
     text += '{}'.format(obj['name']).ljust(max_name_len) + \
-        '| {} '.format(obj['score'] - initial_value).ljust(7) + \
-        '| {}\n'.format(obj['score'] - initial_value + obj['uma'] * 10)
+        '| {} '.format(net_score).ljust(7) + \
+        '| {}\n'.format(score_with_uma)
 
   return text
