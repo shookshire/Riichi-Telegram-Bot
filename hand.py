@@ -78,7 +78,8 @@ class Hand:
     self.riichi[idx] = not self.riichi[idx]
     if idx in self.riichi_order:
       self.riichi_order.remove(idx)
-    self.riichi_order.append(idx)
+    else:
+      self.riichi_order.append(idx)
     return True, None
 
   def toggle_tenpai(self, name):
@@ -455,6 +456,6 @@ class Hand:
                 self.fu[i])
         )
 
-    text += 'Who Riichi:\n{}'.format(
+    text += 'Order of players who riichi:\n{}'.format(
         print_select_names_in_order(player_names, self.riichi_order))
     return text

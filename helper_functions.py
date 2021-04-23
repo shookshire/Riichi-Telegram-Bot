@@ -26,10 +26,11 @@ def print_select_names(player_names, selected):
   return text
 
 
-def print_select_names_in_order(player_names, order):
+def print_select_names_in_order(player_names, riichi_order):
   text = ''
-  for idx in order:
-    text += '{}\n'.format(player_names[idx])
+  for i in range(len(riichi_order)):
+    idx = riichi_order[i]
+    text += '{}. {}\n'.format(i + 1, player_names[idx])
   return text
 
 

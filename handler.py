@@ -659,7 +659,7 @@ def add_new_hand(update, context):
 
   game.create_new_hand()
 
-  return return_4_player_done_option(update, game.players.get_name_list(), SET_RIICHI, '`Who riichi?`')
+  return return_4_player_done_option(update, game.players.get_name_list(), SET_RIICHI, '`Who riichi first?`')
 
 
 def return_4_player_option(update, player_names, return_state, text):
@@ -897,7 +897,7 @@ def set_riichi(update, context):
     return return_4_player_done_option(update, player_names, SET_RIICHI, '`Invalid player name entered\nPlease enter a valid player name`')
 
   return return_4_player_done_option(update, player_names, SET_RIICHI,
-                                     '`Players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho riichi?`'.format(print_select_names_in_order(player_names, hand.riichi_order)))
+                                     '`Order of players who riichi:\n(Click on the player\'s name again to remove him/her from the list)\n-----------------------------\n{}\nWho riichi next?`'.format(print_select_names_in_order(player_names, hand.riichi_order)))
 
 
 def return_save_discard_hand_option(update, hand):
