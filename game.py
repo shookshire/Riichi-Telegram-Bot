@@ -134,7 +134,7 @@ class Game:
   def print_current_game_state(self):
     last_hand = self.get_last_hand()
     if last_hand is None:
-      text = 'Current Score:\n-----------------------------\n'
+      text = 'Current score:\n-----------------------------\n'
       text += print_name_score(self.players.get_name_list(),
                                [self.initial_value]*4)
       text += '\nValue in pool: 0'

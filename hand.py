@@ -1,5 +1,5 @@
 import re
-from helper_functions import print_name_score, print_select_names, get_max_len, print_select_names_in_order
+from helper_functions import print_name_score, print_select_names, get_max_len, print_select_names_in_order, print_name_score_and_difference
 from constants import TSUMO_VALUE, RON_VALUE, TSUMO_OYA_VALUE, TSUMO_OYA_KIRIAGE_VALUE, TSUMO_KIRIAGE_VALUE, RON_OYA_VALUE, RON_OYA_KIRIAGE_VALUE, RON_KIRIAGE_VALUE
 
 
@@ -406,14 +406,15 @@ class Hand:
     return text
 
   def print_change(self):
-    text = 'Score Change:\n-----------------------------\n'
+    text = 'Score change:\n-----------------------------\n'
     text += print_name_score(self.players.get_name_list(),
                              self.get_total_score_change())
     return text
 
   def print_current_score(self):
-    text = 'Current Score:\n-----------------------------\n'
-    text += print_name_score(self.players.get_name_list(), self.final_score)
+    text = 'Curernt score and score difference from next position:\n-----------------------------\n'
+    text += print_name_score_and_difference(
+        self.players.get_name_list(), self.final_score, self.position)
     text += '\nValue in pool: {}'.format(self.pool)
     return text
 
