@@ -66,7 +66,13 @@ def print_name_score_and_difference(player_names, score, position):
       next_pos -= 1
     return score[rounded_position.index(pos)] - score[rounded_position.index(next_pos)]
 
-  score_difference = map_score_to_string(
+  def all_players_same_score(pos):
+    for p in pos:
+      if not p == 2:
+        return False
+    return True
+
+  score_difference = ['0', '0', '0', '0'] if all_players_same_score(rounded_position) else map_score_to_string(
       list(map(get_score_difference, rounded_position)))
 
   text = ''
