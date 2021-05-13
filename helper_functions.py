@@ -61,9 +61,13 @@ def print_name_score_and_difference(player_names, score, position):
   def get_score_difference(pos):
     if pos == 1:
       return 0
-    next_pos = pos - 1
-    while not next_pos in rounded_position and next_pos > 1:
-      next_pos -= 1
+
+    next_pos = pos
+    for i in range(pos - 1, 0, -1):
+      if i in rounded_position:
+        next_pos = i
+        break
+
     return score[rounded_position.index(pos)] - score[rounded_position.index(next_pos)]
 
   def all_players_same_score(pos):
