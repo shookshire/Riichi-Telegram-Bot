@@ -19,6 +19,8 @@ class Hand:
     self.chombo = [False, False, False, False]
     self.score_change = []
     self.value = []
+    self.deal_into_oya = []
+    self.deal_into_riichi = []
 
     self.players = players
     self.kiriage = kiriage
@@ -236,12 +238,16 @@ class Hand:
       winner = self.winners[i]
       score_change = [0, 0, 0, 0]
 
+      self.deal_into_riichi.append(1 if self.riichi[winner] else 0)
+
       if self.is_oya_win(winner):
         value = self.get_value_list(True)[self.han[i]][self.fu[i]] if re.match(
             '^[1-4]$', self.han[i]) else self.get_value_list(True)[self.han[i]]
+        self.deal_into_oya.append(1)
       else:
         value = self.get_value_list(False)[self.han[i]][self.fu[i]] if re.match(
             '^[1-4]$', self.han[i]) else self.get_value_list(False)[self.han[i]]
+        self.deal_into_oya.append(0)
 
       score_change[winner] = value + self.honba*3
       score_change[self.loser] = -value - self.honba*3
@@ -388,7 +394,9 @@ class Hand:
             changed_score[j],
             score_change[j],
             int(self.chombo[j]),
-            self.riichi_order.index(j) if j in self.riichi_order else None
+            self.riichi_order.index(j) if j in self.riichi_order else None,
+            self.deal_into_oya[i] if ioutcome[i][j] == 'Deal-in' else None,
+            self.deal_into_riichi[i] if ioutcome[i][j] == 'Deal-in' else None
         ])
 
       current_score = changed_score
