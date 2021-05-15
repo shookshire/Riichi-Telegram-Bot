@@ -143,6 +143,13 @@ class Hand:
     return True, None
 
   def process_hand(self):
+    # Sort winners list
+    if len(self.winners) > 1:
+      self.winners = list(
+          map(lambda x: x + 4 if x < self.loser else x, self.winners))
+      self.winners.sort()
+      self.winners = list(map(lambda x: x % 4, self.winners))
+
     if self.outcome in ['Tsumo', 'Nagashi Mangan']:
       self.process_tsumo_score_change()
     if self.outcome == 'Ron':
