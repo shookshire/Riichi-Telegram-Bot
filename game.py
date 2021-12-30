@@ -22,9 +22,11 @@ class Game:
     self.multiple_ron = False
     self.starting_datetime = None
     self.hands = []
+    self.final_score = []
     self.penalty = [0, 0, 0, 0]
     self.current_hand = None
     self.timeout = False
+    self.final_score_only = False
 
     self.players = players
     self.recorded = recorded
@@ -35,6 +37,9 @@ class Game:
 
   def add_custom_uma(self, text):
     self.uma.append(int(text))
+
+  def reset_final_score(self):
+    self.final_score = []
 
   def set_penalty(self, name, value):
     idx = self.players.get_player_id(name)
@@ -62,14 +67,32 @@ class Game:
     self.hands.append(self.current_hand)
     self.current_hand = None
 
+  def set_final_score(self, score):
+    self.final_score.append(int(score))
+    return len(self.final_score)
+
   def end_game(self, timeout=False):
     self.duration = divmod(
         (datetime.now() - self.starting_datetime).total_seconds(), 60)[0]
     self.timeout = timeout
-    last_hand = self.get_last_hand()
-    self.final_score = last_hand.final_score if not last_hand is None else [
-        self.initial_value]*4
-    self.position = last_hand.position if not last_hand is None else [2.5]*4
+
+    if self.final_score_only:
+      self.process_position()
+    else:
+      last_hand = self.get_last_hand()
+      self.final_score = last_hand.final_score if not last_hand is None else [
+          self.initial_value]*4
+      self.position = last_hand.position if not last_hand is None else [2.5]*4
+
+  def process_position(self):
+    self.position = [0.5, 0.5, 0.5, 0.5]
+    for i in range(4):
+      s = self.final_score[i]
+      for x in self.final_score:
+        if x == s:
+          self.position[i] += 0.5
+        if x > s:
+          self.position[i] += 1
 
   def submit_game(self):
     thread = Thread(target=self.submit_game_thread)
@@ -155,4 +178,10 @@ class Game:
         'Yes' if self.kiriage else 'No')
     text += 'Multiple Ron: 	 | {}\n'.format(
         'Yes' if self.multiple_ron else 'No')
+    return text
+
+  def print_final_score(self):
+    text = 'Final score:\n-----------------------------\n'
+    text += print_name_score(self.players.get_name_list(),
+                             self.final_score)
     return text

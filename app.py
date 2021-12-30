@@ -46,6 +46,9 @@ from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER,
 # Mcr state
 from constants import MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_CONFIRM_GAME_END, MCR_DELETE_LAST_HAND
 
+# Set final score
+from constants import SET_PLAYER_FINAL_SCORE
+
 
 def main():
   # Create the Updater and pass it your bot's token.
@@ -161,7 +164,13 @@ def main():
               MessageHandler(Filters.regex(
                   '^Start game$'), handler.start_game),
               MessageHandler(Filters.regex('^Discard game$'),
-                             handler.discard_game_settings)
+                             handler.discard_game_settings),
+              MessageHandler(Filters.regex('^Enter Final Score$'),
+                             handler.start_final_score_only)
+          ],
+          SET_PLAYER_FINAL_SCORE: [
+              MessageHandler(Filters.regex('^-?[0-9]+$'),
+                             handler.set_final_score)
           ],
           SELECT_NEXT_COMMAND: [
               MessageHandler(Filters.regex('^New Hand$'),

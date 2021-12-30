@@ -131,7 +131,7 @@ def print_end_game_result(player_names, score, position, initial_value, uma):
     text += '{}'.format(obj['name']).ljust(max_name_len + 1) + '|' + '{}'.format(obj['score']).rjust(4) + \
         ' | {}\n'.format(obj['position'])
 
-  text += '\n' + 'Name'.ljust(max_name_len) + '| Net  | Points\n'
+  text += '\n' + 'Name'.ljust(max_name_len + 1) + '| Net  | Points\n'
   for obj in res:
     net_score = obj['score'] - initial_value
     score_with_uma = net_score + obj['uma'] * 10

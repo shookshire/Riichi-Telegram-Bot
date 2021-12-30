@@ -31,6 +31,9 @@ from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HA
 # Confirm game end
 from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
 
+# Set final score
+from constants import SET_PLAYER_FINAL_SCORE
+
 from players import Players
 from location import Location
 from game import Game
@@ -604,7 +607,7 @@ def set_chombo_payment_option(update, context):
 def select_edit_done(update, context):
   user_data = context.user_data
   game = user_data['game']
-  reply_keyboard = [['Start game', 'Discard game']]
+  reply_keyboard = [['Start game', 'Discard game'], ['Enter Final Score']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
@@ -640,6 +643,50 @@ def start_game(update, context):
   game.start_game()
 
   return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
+
+
+def return_next_player_score_command(update, game):
+  player_num = len(game.final_score)
+  player_name = game.players.get_name_list()[player_num]
+
+  update.message.reply_text(
+      "`Please enter {}'s score`".format(player_name),
+      parse_mode=ParseMode.MARKDOWN_V2)
+
+  return SET_PLAYER_FINAL_SCORE
+
+
+@catch_error
+def start_final_score_only(update, context):
+  user_data = context.user_data
+  game = user_data['game']
+
+  game.start_game()
+  game.final_score_only = True
+
+  return return_next_player_score_command(update, game)
+
+
+@catch_error
+def set_final_score(update, context):
+  user_data = context.user_data
+  game = user_data['game']
+  text = update.message.text
+
+  num = game.set_final_score(text)
+  if num < 4:
+    return return_next_player_score_command(update, game)
+
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+      format_text_for_telegram('Is the score correct?\n\n{}'.format(
+          game.print_final_score())),
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+  return CONFIRM_GAME_END
 
 
 @ catch_error
@@ -1086,6 +1133,10 @@ def confirm_penalty_done(update, context):
 def return_to_next_command(update, context):
   user_data = context.user_data
   game = user_data['game']
+
+  if game.final_score_only:
+    game.reset_final_score()
+    return return_next_player_score_command(update, game)
 
   return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
 
