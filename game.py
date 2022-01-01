@@ -71,6 +71,11 @@ class Game:
     self.final_score.append(int(score))
     return len(self.final_score)
 
+  def verify_final_score(self):
+    total_score = sum(self.final_score)
+    score_difference = self.initial_value * 4 - total_score
+    return score_difference >= 0 and score_difference % 10 == 0
+
   def end_game(self, timeout=False):
     self.duration = divmod(
         (datetime.now() - self.starting_datetime).total_seconds(), 60)[0]

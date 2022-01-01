@@ -645,12 +645,12 @@ def start_game(update, context):
   return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
 
 
-def return_next_player_score_command(update, game):
+def return_next_player_score_command(update, game, text=''):
   player_num = len(game.final_score)
   player_name = game.players.get_name_list()[player_num]
 
   update.message.reply_text(
-      "`Please enter {}'s score`".format(player_name),
+      "`{}Please enter {}'s score`".format(text, player_name),
       parse_mode=ParseMode.MARKDOWN_V2)
 
   return SET_PLAYER_FINAL_SCORE
@@ -664,7 +664,7 @@ def start_final_score_only(update, context):
   game.start_game()
   game.final_score_only = True
 
-  return return_next_player_score_command(update, game)
+  return return_next_player_score_command(update, game, "All scores are to be inputted in hundreds (45k = input 450)\n\n")
 
 
 @catch_error
@@ -676,6 +676,10 @@ def set_final_score(update, context):
   num = game.set_final_score(text)
   if num < 4:
     return return_next_player_score_command(update, game)
+
+  if not game.verify_final_score():
+    game.reset_final_score()
+    return return_next_player_score_command(update, game, "The total score does not tally. Please re-enter the final scores.\n\nAll scores are to be inputted in hundreds (45k = input 450)\n\n")
 
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -1136,7 +1140,7 @@ def return_to_next_command(update, context):
 
   if game.final_score_only:
     game.reset_final_score()
-    return return_next_player_score_command(update, game)
+    return return_next_player_score_command(update, game, "All scores are to be inputted in hundreds (45k = input 450)\n\n")
 
   return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
 
