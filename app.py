@@ -66,8 +66,8 @@ def main():
           CommandHandler('start', handler.helper),
           CommandHandler('riichi', handler.start_new_game),
           # CommandHandler('record', handler.start_input_game_result),
-          CommandHandler('get_telegram_id', handler.get_telegram_id),
-          CommandHandler('get_my_info', handler.get_sgriichi_id),
+          CommandHandler('telegramid', handler.get_telegram_id),
+          CommandHandler('myinfo', handler.get_sgriichi_id),
           CommandHandler('update', handler.get_googlesheet_data)
       ],
 

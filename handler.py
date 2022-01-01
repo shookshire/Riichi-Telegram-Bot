@@ -50,17 +50,17 @@ def helper(update, context):
       "Akako records your every hand played during the game and give you interesting statistical insights! Only for registered Singaporean Riichi players.\n\n"
       + "Just follow a few simple steps below!\n"
       + "1. You can register at https://sgriichimahjong.com/join-sgriichi/\n"
-      + "2. You will be asked for your telegram id number. Type /get_telegram_id , copy and paste into the form.\n"
+      + "2. You will be asked for your telegram id number. Type /telegramid , copy and paste into the form.\n"
       + "3. Upon filling up the 2 forms, wait for 0.5 working day or contact @MrFeng for the bot to update with your registered information.\n"
-      + "4. Once updated, type /get_my_info to retrieve your player id and registered player name. Please remember them.\n"
+      + "4. Once updated, type /myinfo to retrieve your player id and registered player name. Please remember them.\n"
       + "5. Type /riichi to start using it! Only 1 person of the table will record. If you are not recording, provide your player id or player name to the person recording.\n"
       + "6. Your games recorded will be tabulated at https://sgriichimahjong.com/results/\n\n"
       + "List of Akako functions:\n"
       + "/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n"
-      + "/get_my_info: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n"
+      + "/myinfo: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n"
       + "/help: Display this starting message\n"
       + "/quit: Quit current game. Game data will not be recorded.\n"
-      + "/get_telegram_id: Returns your telegram id number.\n"
+      + "/telegramid: Returns your telegram id number.\n"
       + "/mcr: Start a new MCR score tracker. Game data are NOT recorded. No registration required.")
 
   return ConversationHandler.END
@@ -118,7 +118,7 @@ def start_new_game(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      "`Please select if this game will be recorded by SgRiichi:\nDo note that only games played by 4 registered SgRiichi players can be recorded`",
+      "`Do you want this game to be recorded?`",
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
