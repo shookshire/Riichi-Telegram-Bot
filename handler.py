@@ -678,8 +678,9 @@ def set_final_score(update, context):
     return return_next_player_score_command(update, game)
 
   if not game.verify_final_score():
+    total_input_score = sum(game.final_score)
     game.reset_final_score()
-    return return_next_player_score_command(update, game, "The total score does not tally. Please re-enter the final scores.\n\nAll scores are to be inputted in hundreds (45k = input 450)\n\n")
+    return return_next_player_score_command(update, game, "Total score inputted is {}. It does not tally. Please re-enter the final scores.\n\nAll scores are to be inputted in hundreds (45k = input 450)\n\n".format(total_input_score))
 
   reply_keyboard = [['Yes', 'No']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)

@@ -189,4 +189,5 @@ class Game:
     text = 'Final score:\n-----------------------------\n'
     text += print_name_score(self.players.get_name_list(),
                              self.final_score)
+    text += '\nPool: {}'.format(self.initial_value*4 - sum(self.final_score))
     return text
