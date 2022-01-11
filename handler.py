@@ -37,6 +37,7 @@ from constants import SET_PLAYER_FINAL_SCORE
 from players import Players
 from location import Location
 from game import Game
+from game_state import GameState
 
 
 def format_text_for_telegram(str):
@@ -617,6 +618,16 @@ def select_edit_done(update, context):
 
   return CONFIRM_GAME_SETTINGS
 
+@ catch_error
+def get_my_score(update, context):
+  telegram_id = update.message.chat.id
+  
+  sample = GameState()
+  update.message.reply_text(
+     '`{}`'.format(sample.get_game_state(telegram_id)),
+      parse_mode=ParseMode.MARKDOWN_V2)
+  
+  
 
 #############################################################################################
 # GAme start
@@ -1204,6 +1215,8 @@ def confirm_cancel_game(update, context):
 @ catch_error
 def quit(update, context):
   user_data = context.user_data
+  game_state = GameState()
+  game_state.update_state(user_data['game'].players.get_telegram_list())
 
   update.message.reply_text(
       "`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)

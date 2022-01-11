@@ -57,7 +57,7 @@ class Players:
     return [p['pid'] for p in self.players]
 
   def get_telegram_list(self):
-    return [p['telegram_id'] for p in self.players]
+    return list(filter(None, [p['telegram_id'] if 'telegram_id' in p else None for p in self.players]))
 
   def get_player_id(self, name):
     name = handle_name(name)

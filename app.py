@@ -25,6 +25,7 @@ import handler
 import mcr_handler
 from config import BOT_CONFIG
 from log_helper import logger
+from game_state import GameState
 
 # Pre-settings for recorded game
 from constants import SET_RECORDED_GAME
@@ -51,6 +52,9 @@ from constants import SET_PLAYER_FINAL_SCORE
 
 
 def main():
+  # Create GameState singleton
+  GameState()
+
   # Create the Updater and pass it your bot's token.
   # Make sure to set use_context=True to use the new context based callbacks
   # Post version 12 this will no longer be necessary
@@ -68,7 +72,8 @@ def main():
           # CommandHandler('record', handler.start_input_game_result),
           CommandHandler('telegramid', handler.get_telegram_id),
           CommandHandler('myinfo', handler.get_sgriichi_id),
-          CommandHandler('update', handler.get_googlesheet_data)
+          CommandHandler('update', handler.get_googlesheet_data),
+          CommandHandler('score', handler.get_my_score)
       ],
 
       states={

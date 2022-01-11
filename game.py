@@ -6,6 +6,7 @@ from log_helper import logger
 import push_msg
 from config import MAIN_ADMIN
 from threading import Thread, Lock
+from game_state import GameState
 
 from helper_functions import print_end_game_result, print_game_confirmation, print_name_score
 
@@ -31,6 +32,7 @@ class Game:
     self.players = players
     self.recorded = recorded
     self.location = location
+    self.game_state = GameState()
 
   def start_game(self):
     self.starting_datetime = datetime.now()
@@ -58,6 +60,8 @@ class Game:
   def delete_last_hand(self):
     if len(self.hands):
       self.hands.pop()
+    
+    self.game_state.update_state(self.players.get_telegram_list(), self.hands[-1] if len(self.hands) else None)
 
   def drop_current_hand(self):
     self.current_hand = None
@@ -65,6 +69,8 @@ class Game:
   def save_hand(self):
     self.current_hand.process_hand()
     self.hands.append(self.current_hand)
+    self.game_state.update_state(self.players.get_telegram_list(), self.current_hand)
+
     self.current_hand = None
 
   def set_final_score(self, score):
@@ -77,6 +83,7 @@ class Game:
     return score_difference >= 0 and score_difference % 10 == 0
 
   def end_game(self, timeout=False):
+    self.game_state.update_state(self.players.get_telegram_list(), None)
     self.duration = divmod(
         (datetime.now() - self.starting_datetime).total_seconds(), 60)[0]
     self.timeout = timeout
