@@ -30,7 +30,7 @@ def catch_error(f):
       return f(update, context)
     except Exception as e:
       # Add info to error tracking
-      logger.error(str(e))
+      logger.error('{} | {}'.format(f.__name__, str(e)))
       update.message.reply_text("An error occured ...\nPlease contact the admin ...")
 
   return wrap
