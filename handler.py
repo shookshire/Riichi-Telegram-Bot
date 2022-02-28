@@ -630,6 +630,8 @@ def get_my_score(update, context):
       '`{}`'.format(sample.get_game_state(telegram_id)),
       parse_mode=ParseMode.MARKDOWN_V2)
 
+  return ConversationHandler.END
+
 
 #############################################################################################
 # GAme start
