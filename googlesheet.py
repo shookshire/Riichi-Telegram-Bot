@@ -81,6 +81,7 @@ class Googlesheets:
         f.close()
         break
       except Exception as e:
+        logger.error('Failed to append row to sheet')
         logger.error(e)
         if i == self.max_attempt - 1:
           raise
