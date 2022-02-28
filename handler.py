@@ -58,7 +58,8 @@ def helper(update, context):
       + "6. Your games recorded will be tabulated at https://sgriichimahjong.com/results/\n\n"
       + "List of Akako functions:\n"
       + "/riichi : Start a new riichi score tracker. Game data for recorded games will be automatically stored to SgRiichi server.\n"
-      + "/score: Displays the status of your current game. (If you are currently in game)\n"
+      +
+        "/score: Displays the status of your current game. (If you are currently in game)\n"
       + "/myinfo: Returns your SgRiichi id if your telegram id have been registered in SgRiichi's database.\n"
       + "/help: Display this starting message\n"
       + "/quit: Quit current game. Game data will not be recorded.\n"
@@ -619,16 +620,16 @@ def select_edit_done(update, context):
 
   return CONFIRM_GAME_SETTINGS
 
+
 @ catch_error
 def get_my_score(update, context):
   telegram_id = update.message.chat.id
-  
+
   sample = GameState()
   update.message.reply_text(
-     '`{}`'.format(sample.get_game_state(telegram_id)),
+      '`{}`'.format(sample.get_game_state(telegram_id)),
       parse_mode=ParseMode.MARKDOWN_V2)
-  
-  
+
 
 #############################################################################################
 # GAme start
