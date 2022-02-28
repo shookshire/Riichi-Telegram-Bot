@@ -1219,8 +1219,10 @@ def confirm_cancel_game(update, context):
 @ catch_error
 def quit(update, context):
   user_data = context.user_data
-  game_state = GameState()
-  game_state.update_state(user_data['game'].players.get_telegram_list())
+
+  if 'game' in user_data:
+    game_state = GameState()
+    game_state.update_state(user_data['game'].players.get_telegram_list())
 
   update.message.reply_text(
       "`User has exited successfully`", parse_mode=ParseMode.MARKDOWN_V2)
