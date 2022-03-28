@@ -371,6 +371,9 @@ def confirm_player_name(update, context):
       user_data['players'], user_data['recorded'], user_data['location'])
   user_data['game'] = game
 
+  if not user_data['recorded']:
+    return return_select_edit_settings(update, game)
+
   rules_list = bot_data['rules_list']
   mode_id = user_data['location'].get_mode_id()
 
@@ -659,6 +662,7 @@ def set_chombo_payment_option(update, context):
 
   return return_select_edit_settings(update, game)
 
+
 def return_confirm_game_settings(update, game):
   reply_keyboard = [['Start game', 'Discard game'], ['Enter Final Score']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -669,6 +673,7 @@ def return_confirm_game_settings(update, game):
       reply_markup=markup)
 
   return CONFIRM_GAME_SETTINGS
+
 
 @ catch_error
 def select_edit_done(update, context):

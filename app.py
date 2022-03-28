@@ -108,7 +108,7 @@ def main():
                              handler.confirm_player_name)
           ],
           SELECT_RULE_SET: [
-              MessageHandler(Filters.regex('^[a-zA-Z0-9- ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
+              MessageHandler(Filters.regex('^[a-zA-Z0-9-/ ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
                              handler.select_rules),
           ],
           SELECT_EDIT_SETTINGS: [
