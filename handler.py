@@ -23,7 +23,7 @@ from constants import SET_VENUE, SET_MODE, CONFIRM_VENUE_MODE
 from constants import SET_PLAYER_NAME, CONFIRM_PLAYER_NAME
 
 # Setting game settings
-from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE, SET_ATAMAHANE, CONFIRM_GAME_SETTINGS
+from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE, SET_ATAMAHANE, CONFIRM_GAME_SETTINGS, SELECT_RULE_SET
 
 # Updating new hand
 from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON
@@ -38,6 +38,8 @@ from players import Players
 from location import Location
 from game import Game
 from game_state import GameState
+
+from constants import UNIVERSAL_MID
 
 
 def format_text_for_telegram(str):
@@ -77,6 +79,7 @@ def get_googlesheet_data(update, context):
     bot_data['player_list'] = googlesheet.get_player_list()
     bot_data['venue_list'] = googlesheet.get_venue_list()
     bot_data['mode_list'] = googlesheet.get_mode_list()
+    bot_data['rules_list'] = googlesheet.get_rules_list()
     update.message.reply_text('finish updating data')
 
   logger.trace('Data has been populated.')
@@ -368,7 +371,28 @@ def confirm_player_name(update, context):
       user_data['players'], user_data['recorded'], user_data['location'])
   user_data['game'] = game
 
-  return return_select_edit_settings(update, game)
+  rules_list = bot_data['rules_list']
+  mode_id = user_data['location'].get_mode_id()
+
+  return return_select_rule_set(update, rules_list, mode_id)
+
+
+def return_select_rule_set(update, rules_list, mode_id):
+  reply_keyboard = list(
+      filter(lambda x: x['mid'] == mode_id or x['mid'] == 0, rules_list))
+  reply_keyboard.append({'label': 'Custom'})
+
+  reply_keyboard = [[h['label'] for h in reply_keyboard[i:i+2]]
+                    for i in range(0, len(reply_keyboard), 2)]
+
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+      '`Please select a rule set:`',
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+  return SELECT_RULE_SET
 
 
 def return_select_edit_settings(update, game):
@@ -383,6 +407,36 @@ def return_select_edit_settings(update, game):
       reply_markup=markup)
 
   return SELECT_EDIT_SETTINGS
+
+
+@catch_error
+def select_rules(update, context):
+  user_data = context.user_data
+  bot_data = context.bot_data
+  game = user_data['game']
+  text = update.message.text
+  rules_list = bot_data['rules_list']
+
+  if text == 'Custom':
+    return return_select_edit_settings(update, game)
+
+  find_rule = list(filter(lambda x: x['label'] == text, rules_list))
+  if len(find_rule) == 0:
+    mode_id = user_data['location'].get_mode_id()
+    return return_select_rule_set(update, rules_list, mode_id)
+
+  rule = find_rule[0]
+
+  game.initial_value = rule['initial_value']
+  game.aka = rule['aka']
+  game.uma = rule['uma']
+  game.oka = rule['oka']
+  game.chombo_value = rule['chombo_value']
+  game.chombo_option = rule['chombo_option']
+  game.kiriage = rule['kiriage']
+  game.multiple_ron = rule['multiple_ron']
+
+  return return_confirm_game_settings(update, game)
 
 
 @ catch_error
@@ -605,11 +659,7 @@ def set_chombo_payment_option(update, context):
 
   return return_select_edit_settings(update, game)
 
-
-@ catch_error
-def select_edit_done(update, context):
-  user_data = context.user_data
-  game = user_data['game']
+def return_confirm_game_settings(update, game):
   reply_keyboard = [['Start game', 'Discard game'], ['Enter Final Score']]
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -619,6 +669,12 @@ def select_edit_done(update, context):
       reply_markup=markup)
 
   return CONFIRM_GAME_SETTINGS
+
+@ catch_error
+def select_edit_done(update, context):
+  user_data = context.user_data
+  game = user_data['game']
+  return return_confirm_game_settings(update, game)
 
 
 @ catch_error

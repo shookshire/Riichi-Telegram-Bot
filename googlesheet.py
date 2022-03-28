@@ -43,6 +43,29 @@ class Googlesheets:
     filtered = list(filter(lambda x: len(x) == 4 and int(x[3]), res))
     return list(map(lambda x: {'mid': int(x[0]), 'name': x[2], 'vid': int(x[1])}, filtered))
 
+  def get_rules_list(self):
+    mode = self.connection.worksheet('rules')
+    res = mode.get('A2:O')
+    filtered = list(filter(lambda x: len(x) == 15 and int(x[2]), res))
+
+    def mapper(x):
+      return {
+          'mid': int(x[1]),
+          'label': x[3],
+          'initial_value': int(x[4]),
+          'aka': x[5],
+          'uma': [int(x[6]), int(x[7]), int(x[8]), int(x[9])],
+          'oka': int(x[10]),
+          'chombo_value': int(x[11]),
+          'chombo_option': x[12],
+          'kiriage': x[13] == '1',
+          'multiple_ron': x[14] == '1'
+      }
+
+    mapped = list(map(mapper, filtered))
+    mapped.sort(key=lambda x: x['mid'])
+    return mapped
+
   def get_last_id(self, sheet_name):
     worksheet = self.connection.worksheet(sheet_name)
     row_count = worksheet.row_count

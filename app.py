@@ -36,7 +36,7 @@ from constants import SET_VENUE, SET_MODE, CONFIRM_VENUE_MODE
 from constants import SET_PLAYER_NAME, CONFIRM_PLAYER_NAME
 
 # Setting game settings
-from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE, SET_ATAMAHANE, CONFIRM_GAME_SETTINGS
+from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA, SET_CUSTOM_UMA, SET_CHOMBO_VALUE, SET_OKA, SET_CHOMBO_PAYMENT_OPTION, SET_KIRIAGE, SET_ATAMAHANE, CONFIRM_GAME_SETTINGS, SELECT_RULE_SET
 
 # Updating new hand
 from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON
@@ -106,6 +106,10 @@ def main():
           CONFIRM_PLAYER_NAME: [
               MessageHandler(Filters.regex('^(Re-enter Names|Proceed)$'),
                              handler.confirm_player_name)
+          ],
+          SELECT_RULE_SET: [
+              MessageHandler(Filters.regex('^[a-zA-Z0-9- ]+$') & ~(Filters.command | Filters.regex('^Quit$')),
+                             handler.select_rules),
           ],
           SELECT_EDIT_SETTINGS: [
               MessageHandler(Filters.regex('^Initial Value$'),
