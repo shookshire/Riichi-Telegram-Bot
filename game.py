@@ -60,8 +60,9 @@ class Game:
   def delete_last_hand(self):
     if len(self.hands):
       self.hands.pop()
-    
-    self.game_state.update_state(self.players.get_telegram_list(), self.hands[-1] if len(self.hands) else None)
+
+    self.game_state.update_state(
+        self.players.get_telegram_list(), self.hands[-1] if len(self.hands) else None)
 
   def drop_current_hand(self):
     self.current_hand = None
@@ -69,7 +70,8 @@ class Game:
   def save_hand(self):
     self.current_hand.process_hand()
     self.hands.append(self.current_hand)
-    self.game_state.update_state(self.players.get_telegram_list(), self.current_hand)
+    self.game_state.update_state(
+        self.players.get_telegram_list(), self.current_hand)
 
     self.current_hand = None
 
@@ -116,6 +118,7 @@ class Game:
     try:
       logger.trace("Attempting to save game.")
       db.initialize()
+      logger.trace("Complete DB initialize, start saving game")
       gid = db.set_game_info([
           self.starting_datetime.strftime("%d-%m-%Y"),
           self.starting_datetime.strftime('%H:%M:%S.%f')[:-4],
