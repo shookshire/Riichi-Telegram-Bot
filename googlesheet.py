@@ -67,9 +67,16 @@ class Googlesheets:
     return mapped
 
   def get_last_id(self, sheet_name):
-    worksheet = self.connection.worksheet(sheet_name)
-    row_count = worksheet.row_count
-    return int(worksheet.acell('A{}'.format(row_count)).value)
+    for i in range(0, self.max_attempt):
+      try:
+        worksheet = self.connection.worksheet(sheet_name)
+        row_count = worksheet.row_count
+        return int(worksheet.acell('A{}'.format(row_count)).value)
+      except Exception as e:
+        logger.error('Failed to get last id {}'.format(sheet_name))
+        logger.error(e)
+        if i == self.max_attempt - 1:
+          raise
 
   def initialize(self):
     mutex.acquire()
@@ -92,9 +99,10 @@ class Googlesheets:
     self.ihid += 1
     return self.ihid
 
-  def append_row_to_sheet(self, worksheet, worksheet_name,  data):
+  def append_row_to_sheet(self, worksheet_name,  data):
     for i in range(0, self.max_attempt):
       try:
+        worksheet = self.connection.worksheet(worksheet_name)
         start_time = datetime.now()
         worksheet.append_row(data, value_input_option='USER_ENTERED')
         end_time = datetime.now()
@@ -110,28 +118,24 @@ class Googlesheets:
           raise
 
   def set_game_info(self, data):
-    worksheet = self.connection.worksheet('game_info')
     gid = self.get_gid()
 
     data.insert(0, gid)
-    self.append_row_to_sheet(worksheet, 'game_info', data)
+    self.append_row_to_sheet('game_info', data)
     return gid
 
   def set_game_result(self, data):
-    worksheet = self.connection.worksheet('game_result')
-    self.append_row_to_sheet(worksheet, 'game_result', data)
+    self.append_row_to_sheet('game_result', data)
 
   def set_hand_info(self, data):
-    worksheet = self.connection.worksheet('hand_info')
     hid = self.get_hid()
 
     data.insert(0, hid)
-    self.append_row_to_sheet(worksheet, 'hand_info', data)
+    self.append_row_to_sheet('hand_info', data)
     return hid
 
   def set_hand_result(self, data):
-    worksheet = self.connection.worksheet('hand_result')
     ihid = self.get_ihid()
 
     data.insert(0, ihid)
-    self.append_row_to_sheet(worksheet, 'hand_result', data)
+    self.append_row_to_sheet('hand_result', data)
