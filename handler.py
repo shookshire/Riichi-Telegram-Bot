@@ -1138,7 +1138,7 @@ def end_game(update, context):
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
   update.message.reply_text(
-      '`End Game?`',
+      '`Are you sure you want to end game?`',
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
