@@ -6,7 +6,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
 import push_msg
-from helper_functions import print_end_game_result, print_game_confirmation, print_select_names, print_select_names_in_order
+from helper_functions import print_end_game_result, print_game_confirmation, print_select_names, print_select_names_in_order, print_name_score
 from googlesheet import Googlesheets
 from log_helper import catch_error, logger
 from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
@@ -1164,7 +1164,7 @@ def select_have_penalty(update, context):
   game = user_data['game']
   player_names = game.players.get_name_list()
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_name_score(player_names, game.penalty)), False)
 
 
 @ catch_error
@@ -1194,7 +1194,7 @@ def set_penalty_value(update, context):
   if not success:
     return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nInvalid name entered.\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
 
-  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_select_names(player_names, game.penalty)), False)
+  return return_4_player_done_option(update, player_names, SET_PENALTY_PLAYER, '`Penalty:\n-----------------------------\n{}\nWho has a penalty?`'.format(print_name_score(player_names, game.penalty)), False)
 
 
 @ catch_error
