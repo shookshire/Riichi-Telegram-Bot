@@ -50,6 +50,9 @@ class Game:
     self.penalty[idx] = value
     return True, None
 
+  def clear_penalty(self):
+    self.penalty = [0, 0, 0, 0]
+
   def get_last_hand(self):
     return self.hands[-1] if self.hands else None
 

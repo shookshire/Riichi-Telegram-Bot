@@ -42,7 +42,7 @@ from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA,
 from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON
 
 # Confirm game end
-from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
+from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, CONFIRM_SET_PENALTY_COMPLETE, FINAL_CONFIRM_GAME_END
 
 # Mcr state
 from constants import MCR_SET_PLAYER_NAME, MCR_CONFIRM_PLAYER_NAME, MCR_SELECT_NEXT_COMMAND, MCR_SET_WINNING_PLAYER, MCR_SET_DEAL_IN_PLAYER, MCR_SET_HAND_VALUE, MCR_CONFIRM_GAME_END, MCR_DELETE_LAST_HAND
@@ -272,7 +272,8 @@ def main():
           SELECT_HAVE_PENALTY: [
               MessageHandler(Filters.regex('^Yes$'),
                              handler.select_have_penalty),
-              MessageHandler(Filters.regex('^No$'), handler.save_complete_game)
+              MessageHandler(Filters.regex('^No$'),
+                             handler.final_confirm_end_game)
           ],
           SET_PENALTY_PLAYER: [
               MessageHandler(Filters.regex('^[a-zA-Z0-9 ]+$') & ~(
@@ -284,11 +285,17 @@ def main():
               MessageHandler(Filters.regex(
                   '^[0-9]+$'), handler.set_penalty_value)
           ],
-          COMPLETE_GAME: [
+          CONFIRM_SET_PENALTY_COMPLETE: [
+              MessageHandler(Filters.regex('^Yes$'),
+                             handler.final_confirm_end_game),
+              MessageHandler(Filters.regex('^No$'),
+                             handler.select_have_penalty)
+          ],
+          FINAL_CONFIRM_GAME_END: [
               MessageHandler(Filters.regex('^Yes$'),
                              handler.save_complete_game),
               MessageHandler(Filters.regex('^No$'),
-                             handler.select_have_penalty)
+                             handler.return_to_next_command)
           ],
           ConversationHandler.TIMEOUT: [
               MessageHandler(Filters.text | Filters.command, handler.timeout)

@@ -29,7 +29,7 @@ from constants import SELECT_EDIT_SETTINGS, SET_INITIAL_VALUE, SET_AKA, SET_UMA,
 from constants import SELECT_NEXT_COMMAND, CANCEL_GAME, DELETE_LAST_HAND, SET_HAND_OUTCOME, SET_WINNER, SET_LOSER, SET_DRAW_TENPAI, SET_HAN, SET_FU, SET_RIICHI, SET_CHOMBO, PROCESS_HAND, MULTIPLE_RON
 
 # Confirm game end
-from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, COMPLETE_GAME
+from constants import CONFIRM_GAME_END, SELECT_HAVE_PENALTY, SET_PENALTY_PLAYER, SET_PENALTY_VALUE, CONFIRM_SET_PENALTY_COMPLETE, FINAL_CONFIRM_GAME_END
 
 # Set final score
 from constants import SET_PLAYER_FINAL_SCORE
@@ -1207,7 +1207,7 @@ def confirm_penalty_done(update, context):
       parse_mode=ParseMode.MARKDOWN_V2,
       reply_markup=markup)
 
-  return COMPLETE_GAME
+  return CONFIRM_SET_PENALTY_COMPLETE
 
 
 @ catch_error
@@ -1215,11 +1215,26 @@ def return_to_next_command(update, context):
   user_data = context.user_data
   game = user_data['game']
 
+  game.clear_penalty()
+
   if game.final_score_only:
     game.reset_final_score()
     return return_next_player_score_command(update, game, "All scores are to be inputted in hundreds (45k = input 450)\n\n")
 
   return return_next_command(update, format_text_for_telegram(game.print_current_game_state()))
+
+
+@ catch_error
+def final_confirm_end_game(update, context):
+  reply_keyboard = [['Yes', 'No']]
+  markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+  update.message.reply_text(
+      '`Are you very sure you want to end game?`',
+      parse_mode=ParseMode.MARKDOWN_V2,
+      reply_markup=markup)
+
+  return FINAL_CONFIRM_GAME_END
 
 
 @ catch_error
