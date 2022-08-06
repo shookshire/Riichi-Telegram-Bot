@@ -1,18 +1,14 @@
 import re
 
-from datetime import datetime
 from telegram import ReplyKeyboardMarkup, ParseMode
-from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
-                          ConversationHandler)
+from telegram.ext import (ConversationHandler)
 
-import push_msg
-from helper_functions import print_end_game_result, print_game_confirmation, print_select_names, print_select_names_in_order, print_name_score
+from helper_functions import print_end_game_result, print_select_names, print_select_names_in_order, print_name_score
 from googlesheet import Googlesheets
 from log_helper import catch_error, logger
-from config import DB_CONFIG, SPREADSHEET_CONFIG, ADMIN
-from threading import Thread, Lock
+from config import SPREADSHEET_CONFIG, ADMIN
 
-from constants import SEAT_NAME, BLOCKED_NAMES
+from constants import SEAT_NAME
 
 # Pre-settings for recorded game
 from constants import SET_RECORDED_GAME
@@ -38,8 +34,6 @@ from players import Players
 from location import Location
 from game import Game
 from game_state import GameState
-
-from constants import UNIVERSAL_MID
 
 
 def format_text_for_telegram(str):
