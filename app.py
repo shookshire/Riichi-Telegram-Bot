@@ -231,7 +231,7 @@ def main():
               MessageHandler(Filters.regex('^Drop Current Hand$'),
                              handler.drop_current_hand),
               MessageHandler(Filters.regex(
-                  '^([1-9]|1[0-3])$'), handler.set_han)
+                  '^([1-9]|1[0-3]|26|39)$'), handler.set_han)
           ],
           SET_FU: [
               MessageHandler(Filters.regex('^Drop Current Hand$'),

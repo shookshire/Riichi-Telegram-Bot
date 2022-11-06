@@ -119,7 +119,7 @@ class Hand:
     return True, None
 
   def set_han(self, text):
-    if not re.match('^([1-9]|1[0-3])$', text):
+    if not re.match('^([1-9]|1[0-3]|26|39)$', text):
       return False, 'invalid'
     self.han[-1] = text
     return True, None

@@ -855,7 +855,8 @@ def return_set_han(update):
       ['1', '2', '3'],
       ['4', '5', '6'],
       ['7', '8', '9'],
-      ['10', '11', '12', '13']
+      ['10', '11', '12'],
+      ['13', '26', '39']
   ]
   reply_keyboard.append(['Drop Current Hand'])
   markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
